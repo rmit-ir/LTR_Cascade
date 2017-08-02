@@ -1,0 +1,12 @@
+data/config/config.sh
+data/config/gov2.param
+data/config/pagerank.param
+data/mksvm/gov2_dump
+data/mksvm/gov2_indri
+data/mksvm/gov2_links
+data/mksvm/gov2_wand
+data/mksvm/PageRank.tmp
+data/mksvm/pagerank.ivl
+data/mksvm/pagerank.prior
+data/mksvm/*.csv
+data/mksvm/*.svm

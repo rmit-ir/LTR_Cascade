@@ -1,0 +1,51 @@
+<parameters>
+  <!-- 
+    NOTE:
+      1. Replace /BASEDIR with the real absolute path to the repository.
+      2. Replace /GOV2_CORPUS with the real absolute path to the GOV2 corpus.
+  -->
+  <index>/BASEDIR/experiments/Gov2/data/mksvm/gov2_indri</index>
+  <corpus>
+    <path>/GOV2_CORPUS</path>
+    <inlink>/BASEDIR/experiments/Gov2/data/mksvm/gov2_links/sorted</inlink>
+    <class>trecweb</class>
+  </corpus>
+
+  <memory>128G</memory>
+  <storeDocs>true</storeDocs>
+  <stemmer><name>krovetz</name></stemmer>
+
+  <metadata>
+    <field>docno</field>
+    <forward>docno</forward>
+    <backward>docno</backward>
+  </metadata>
+
+  <!-- Indri specific -->
+  <field><name>mainbody</name></field>
+  <field><name>heading</name></field>
+  <field><name>inlink</name></field>
+
+  <!-- HTML4 -->
+  <field><name>body</name></field>
+  <field><name>title</name></field>
+  <field><name>a</name></field>
+  <field><name>h1</name></field>
+  <field><name>h2</name></field>
+  <field><name>h3</name></field>
+  <field><name>h4</name></field>
+  <field><name>h5</name></field>
+  <field><name>h6</name></field>
+  <field><name>table</name></field>
+  <field><name>td</name></field>
+  <field><name>ul</name></field>
+  <field><name>ol</name></field>
+  <field><name>dl</name></field>
+  <field><name>blockquote</name></field>
+  <field><name>address</name></field>
+  <field><name>applet</name></field>
+  <field><name>embed</name></field>
+  <field><name>object</name></field>
+  <field><name>blink</name></field>
+  <field><name>marquee</name></field>
+</parameters>

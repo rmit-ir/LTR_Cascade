@@ -1,0 +1,3 @@
+[submodule "external/WANDbl"]
+	path = external/WANDbl
+	url = https://github.com/lgrz/WANDbl
