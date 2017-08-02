@@ -1,0 +1,7 @@
+mksvm/gov2_bigram.txt
+mksvm/gov2_bigram_u8.inv
+mksvm/gov2_unigram.txt
+mksvm/split/
+mksvm/stage0.run
+mksvm/termfeat.tmp
+mksvm/wand-trec.run

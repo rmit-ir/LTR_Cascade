@@ -1,0 +1,7 @@
+models/
+runs/
+data/Webscope_C14B
+data/set1.train.npz
+data/set1.valid.npz
+data/set1.test.npz
+data/qrels.set1
