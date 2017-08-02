@@ -40,7 +40,7 @@ run_cascade_cv() {
 	    --output_eval "$DEST/eval_results/test.$tag"
     done
     cat $DEST/runs/run.gov2.LM_E.f{1,2,3,4,5}."alpha=$alphas" \
-	| python $ROOT/python/cut_to_1000.py \
+	| python $BASE/cut_to_1000.py \
 	> $DEST/runs/run.gov2.LM_E.all."alpha=$alphas"
 }
 
@@ -49,4 +49,4 @@ export BASE ROOT DEST
 
 which parallel >/dev/null || { echo "error: GNU parallel is not installed" >&2; }
 
-parallel -j$N_THREADS run_cascade_cv {} ::: $(python $ROOT/python/gen_alphas.py -small -e 500)
+parallel -j$N_THREADS run_cascade_cv {} ::: $(python $BASE/gen_alphas.py -small -e 500)
