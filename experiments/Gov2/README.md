@@ -12,7 +12,6 @@ scripts:
 
     cp data/config/config.sh.dist data/config/config.sh
     cp data/config/gov2.param.dist data/config/gov2.param
-    cp data/config/pagerank.param.dist data/config/pagerank.param
 
 
 Edit the local configuration files to set the path to your copy of the GOV 2
