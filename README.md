@@ -29,5 +29,5 @@ Other bash scripts and Makefiles under `experiments` should work out of the box.
 
 ## Ranking Experiments ##
 
-* [Yahoo! Set 1](experiments/Yahoo_Set1/README.md)
-* [Gov2](experiments/Gov2/README.md)
+* [Yahoo! Set 1](experiments/Yahoo_Set1/)
+* [Gov2](experiments/Gov2/)
