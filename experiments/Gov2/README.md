@@ -19,9 +19,9 @@ corpus.  Be sure to make the following changes:
 
 *  In `config.sh`, point `CORPUS_PATH` variable to the GOV2 corpus.
 
-*  In `gov2.param` and `pagerank.param`, replace `/BASEDIR` with the actual
-   path to this repo and `/GOV2_CORPUS` to the GOV2 corpus.  Note that in these
-   param files the paths have to be *absolute* (Indri likes that better).
+*  In `gov2.param` replace `/BASEDIR` with the actual path to this repo and
+   `/GOV2_CORPUS` to the GOV2 corpus.  Note that in these param files the paths
+   have to be *absolute*.
 
 
 Build the feature file:
@@ -32,7 +32,6 @@ The above script will take a long time as it performs the following tasks:
 
 * Harvest links from the GOV2 corpus
 * Build an Indri index
-* Run the PageRank algorithm over the corpus
 * Insert the PageRank scores as a prior in the Indri index
 * Dump the Indri index to ASCII text files
 * Compute unigram scores and statistics
