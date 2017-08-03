@@ -8,7 +8,7 @@ If you use this package in your work, please cite the following paper:
 
 > Ruey-Cheng Chen, Luke Gallagher, Roi Blanco, and J. Shane Culpepper. 
 > Efficient Cost-Aware Cascade Ranking for Multi-Stage Retrieval. In
-> Proceedings of SIGIR '17, to appear.
+> Proceedings of SIGIR '17, pages 445-454. ACM, 2017.
 
 
 ## Get Started ##
