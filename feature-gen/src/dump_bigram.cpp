@@ -147,9 +147,23 @@ int main(int argc, char *argv[]) {
 
       for (auto &curr_bigram : qry_bigrams) {
         bigram term_bigram(curr_idx->term(curr_bigram.first),
-                           curr_idx->term(curr_bigram.second));
-        if (bigram_seen.find(term_bigram) == bigram_seen.end()) {
-          std::vector<indri::index::DocListIterator *> doc_iters(2);
+            curr_idx->term(curr_bigram.second));
+
+        std::map<bigram, bool>::iterator found;
+        if (is_ordered) {
+          found = bigram_seen.find(term_bigram);
+        } else {
+          found = std::find_if(bigram_seen.begin(), bigram_seen.end(),
+              [&](const std::pair<bigram, bool>& el) {
+              return (el.first.term_a == term_bigram.term_a
+                && el.first.term_b == term_bigram.term_b)
+              || (el.first.term_a == term_bigram.term_b &&
+                el.first.term_b == term_bigram.term_a);
+              });
+        }
+
+        if (found == bigram_seen.end()) {
+          std::vector<indri::index::DocListIterator*> doc_iters(2);
           uint64_t min_df = tot_doc;
           int min_term = -1;
           for (int i = 0; i < 2; ++i) {
@@ -175,6 +189,7 @@ int main(int argc, char *argv[]) {
           }
 
           if (!doc_iters[0] || !doc_iters[1]) {
+            qry_str = "";
             continue;
           }
 
@@ -194,10 +209,10 @@ int main(int argc, char *argv[]) {
           fout << std::endl;
           qry_str = "";
 
-          bigram_seen.emplace(
-              std::pair<bigram, bool>({curr_idx->term(curr_bigram.first),
-                                       curr_idx->term(curr_bigram.second)},
-                                      true));
+          bigram_seen.emplace(std::pair<bigram, bool>({curr_idx->term(curr_bigram.first),
+                curr_idx->term(curr_bigram.second)}, true));
+          delete doc_iters[0];
+          delete doc_iters[1];
         } else {
           std::cerr << "already processed (" << curr_bigram.first << ", "
                     << curr_bigram.second << ")" << std::endl;
