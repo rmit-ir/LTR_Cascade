@@ -6,9 +6,16 @@ Multi-Stage Retrieval".
 
 If you use this package in your work, please cite the following paper:
 
-> Ruey-Cheng Chen, Luke Gallagher, Roi Blanco, and J. Shane Culpepper. 
-> Efficient Cost-Aware Cascade Ranking for Multi-Stage Retrieval. In
-> Proceedings of SIGIR '17, pages 445-454. ACM, 2017.
+```
+@inproceedings{chen_efficient_2017,
+ author = {Chen, Ruey-Cheng and Gallagher, Luke and Blanco, Roi and Culpepper, J. Shane},
+ title = {Efficient Cost-Aware Cascade Ranking in Multi-Stage Retrieval},
+ booktitle = {Proceedings of {SIGIR} '17},
+ year = {2017},
+ pages = {445--454},
+ publisher = {ACM}
+} 
+```
 
 
 ## Get Started ##
