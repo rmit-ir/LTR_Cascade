@@ -72,21 +72,21 @@ def predict(cascade, test_data, costs, output_trec_run=None, output_eval=None):
         eval_results['%s_cost_per_doc' % name] = cost_spent_weighted / float(x.shape[0])
 
     if output_eval:
-        with open(output_eval, 'wb') as output:
+        with open(output_eval, 'w') as output:
             for i, _ in enumerate(states, 1):
                 name = 'stage%i' % i if i < len(states) else 'cascade'
                 for m in ['n_features', 'n_docs']:
                     measure = '%s_%s' % (name, m)
-                    output.write(b'%-24s%i\n' % (measure, eval_results[measure]))
+                    output.write('%-24s%i\n' % (measure, eval_results[measure]))
                 for m in ['err', 'ndcg', 'map', 'err@5', 'err@10', 'err@20',
                           'ndcg@5', 'ndcg@10', 'ndcg@20', 'p@5', 'p@10', 'p@20',
                           'cost', 'cost_per_doc']:
                     measure = '%s_%s' % (name, m)
-                    output.write(b'%-24s%0.4f\n' % (measure, eval_results[measure]))
+                    output.write('%-24s%0.4f\n' % (measure, eval_results[measure]))
         logging.info('Eval result saved to %s' % output_eval)
 
     if output_trec_run:
-        with open(output_trec_run, 'wb') as output:
+        with open(output_trec_run, 'w') as output:
             core.cascade.print_trec_run(output, states[-1]['preds'], y, qid, docno)
         logging.info('TREC run saved to %s' % output_trec_run)
 
