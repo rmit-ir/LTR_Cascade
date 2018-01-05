@@ -560,12 +560,16 @@ def do_retrain(model_type, train_file, validation_file, model_file, new_model_fi
 
 @baker.command(name='info')
 def do_info(model_file):
+    s = set()
     cascade = load_model(model_file)
     for i, (_, stage) in enumerate(cascade['stages'], 1):
         fids = np.flatnonzero(stage.get_feature_mask()) + 1
         print('stage', i)
         print('n_features', len(fids))
         print('fids', fids)
+        for i in fids:
+            s.add(i)
+    print('total n_features', len(s))
 
 
 if __name__ == "__main__":
