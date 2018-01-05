@@ -1,4 +1,5 @@
 from __future__ import print_function
+from __future__ import division
 
 import ast
 import baker
@@ -18,7 +19,7 @@ from core.metrics import test_all
 # TODO: batch per and not per example (group by query-id using utils.py and sample per group)
 def batch_generator(X, y, batch_size, samples_per_epoch):
     """Generate mini-batches."""
-    number_of_batches = samples_per_epoch / batch_size
+    number_of_batches = int(samples_per_epoch / batch_size)
     shuffle_index = np.arange(np.shape(y)[0])
     np.random.shuffle(shuffle_index)
     X = X[shuffle_index, :]
