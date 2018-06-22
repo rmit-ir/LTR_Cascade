@@ -10,11 +10,11 @@ class doc_bm25_trec3_feature : public doc_bm25_feature {
 public:
   doc_bm25_trec3_feature(indri_index &idx) : doc_bm25_feature(idx) {}
 
-  void compute(fat_cache_entry &doc, std::vector<std::string> &query_stems) {
+  void compute(fat_cache_entry &doc, freqs_entry &freqs) {
     ranker.set_k1(120);
     ranker.set_b(75);
 
-    bm25_compute(doc, query_stems);
+    bm25_compute(doc, freqs);
 
     doc.bm25_trec3 = _score_doc;
     doc.bm25_trec3_body = _score_body;
