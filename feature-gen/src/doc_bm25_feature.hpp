@@ -2,6 +2,7 @@
 #define DOC_BM25_FEATURE_HPP
 
 #include <cmath>
+#include <unordered_map>
 
 #include "doc_feature.hpp"
 
@@ -31,31 +32,6 @@ struct rank_bm25 {
 };
 
 /**
- * This is a convenience for fetching the term frequency of a term within a
- * document. The purpose of having it this way is to allow for
- * `get_term_frequency` to be easily stubbed out for unit tests.
- */
-class doc_data {
-public:
-  virtual ~doc_data() {}
-
-  virtual size_t get_term_frequency(lemur::api::DOCID_T doc_id,
-                                    lemur::api::TERMID_T term_id,
-                                    indri::index::Index &index) {
-    size_t count = 0;
-    auto it = index.docListIterator(term_id);
-    it->startIteration();
-    if (it->nextEntry(doc_id)) {
-      auto doc_data = it->currentEntry();
-      count = doc_data->positions.size();
-    }
-
-    delete it;
-    return count;
-  }
-};
-
-/**
  * Common to features using BM25.
  */
 class doc_bm25_feature : public doc_feature {
@@ -77,50 +53,24 @@ public:
 
   ~doc_bm25_feature() { delete doc_data_helper; }
 
-  void bm25_compute(fat_cache_entry &doc,
-                    std::vector<std::string> &query_stems) {
-    // within query frequency
-    std::map<uint64_t, uint32_t> q_ft;
-    // within document frequency
-    std::map<uint64_t, uint32_t> d_ft;
-    // within field frequency
-    std::map<uint64_t, uint32_t> f_ft;
-
+  void bm25_compute(fat_cache_entry &doc, freqs_entry &freqs) {
     _score_reset();
 
-    for (auto &s : query_stems) {
-      auto tid = index.term(s);
-
-      // get within document term frequency
-      d_ft[tid] = doc_data_helper->get_term_frequency(doc.id, tid, index);
-
-      // initialise field term frequency
-      f_ft[tid] = 0;
-
-      // get query term frequency
-      auto it = q_ft.find(tid);
-      if (it == q_ft.end()) {
-        q_ft[tid] = 1;
-      } else {
-        ++it->second;
-      }
-    }
 
     const indri::index::TermList *term_list = doc.term_list;
-    auto &doc_terms = term_list->terms();
 
-    for (auto &q : q_ft) {
+    for (auto &q : freqs.q_ft) {
       // skip non-existent terms
       if (q.first == 0) {
         continue;
       }
 
-      if (0 == d_ft.at(q.first)) {
+      if (0 == freqs.d_ft.at(q.first)) {
         continue;
       }
 
       _score_doc += ranker.calculate_docscore(
-          q.second, d_ft.at(q.first), index.documentCount(index.term(q.first)),
+          q.second, freqs.d_ft.at(q.first), index.documentCount(index.term(q.first)),
           doc.length);
 
       // Score document fields
@@ -138,25 +88,18 @@ public:
           }
 
           field_len += f.end - f.begin;
-          for (size_t i = f.begin; i < f.end; ++i) {
-            auto it = f_ft.find(doc_terms[i]);
-            if (it == f_ft.end()) {
-              f_ft[doc_terms[i]] = 1;
-            } else {
-              ++it->second;
-            }
-          }
+
         }
 
         if (0 == field_len) {
           continue;
         }
-        if (0 == f_ft.at(q.first)) {
+        if (0 == freqs.f_ft.at(q.first)) {
           continue;
         }
 
         double field_score = ranker.calculate_docscore(
-            q.second, f_ft.at(q.first),
+            q.second, freqs.f_ft.at(q.first),
             index.fieldDocumentCount(field_str, index.term(q.first)),
             field_len);
         _accumulate_score(field_str, field_score);

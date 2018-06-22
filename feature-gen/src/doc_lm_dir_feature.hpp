@@ -19,55 +19,55 @@ class doc_lm_dir_feature : public doc_feature {
 public:
   doc_lm_dir_feature(indri_index &idx) : doc_feature(idx) {}
 
-  void compute(fat_cache_entry &doc, std::vector<std::string> &query_stems) {
-    // within query frequency
-    std::map<uint64_t, uint32_t> q_ft;
-    // within document frequency
-    std::map<uint64_t, uint32_t> d_ft;
-    // within field frequency
-    std::map<uint64_t, uint32_t> f_ft;
+  void compute(fat_cache_entry &doc, freqs_entry &freqs) {
+    // // within query frequency
+    // std::map<uint64_t, uint32_t> q_ft;
+    // // within document frequency
+    // std::map<uint64_t, uint32_t> d_ft;
+    // // within field frequency
+    // std::map<uint64_t, uint32_t> f_ft;
 
     _score_reset();
 
-    for (auto &s : query_stems) {
-      auto tid = index.term(s);
+    // for (auto &s : query_stems) {
+    //   auto tid = index.term(s);
 
-      // initialise document term frequency
-      d_ft[tid] = 0;
-      // initialise field term frequency
-      f_ft[tid] = 0;
+    //   // initialise document term frequency
+    //   freqs.d_ft[tid] = 0;
+    //   // initialise field term frequency
+    //   freqs.f_ft[tid] = 0;
 
-      // get query term frequency
-      auto it = q_ft.find(tid);
-      if (it == q_ft.end()) {
-        q_ft[tid] = 1;
-      } else {
-        ++it->second;
-      }
-    }
+    //   // get query term frequency
+    //   auto it = freqs.q_ft.find(tid);
+    //   if (it == freqs.q_ft.end()) {
+    //     freqs.q_ft[tid] = 1;
+    //   } else {
+    //     ++it->second;
+    //   }
+    // }
 
     const indri::index::TermList *term_list = doc.term_list;
     auto &doc_terms = term_list->terms();
-    for (auto tid : doc_terms) {
-      auto it = d_ft.find(tid);
-      if (it == d_ft.end()) {
-        continue;
-      }
-      ++it->second;
-    }
+    // for (auto tid : doc_terms) {
+    //   auto it = freqs.d_ft.find(tid);
+    //   if (it == freqs.d_ft.end()) {
+    //     continue;
+    //   }
+    //   ++it->second;
+    // }
 
-    for (auto &q : q_ft) {
+    for (auto &q : freqs.q_ft) {
       // skip non-existent terms
       if (q.first == 0) {
         continue;
       }
 
-      if (0 == d_ft.at(q.first)) {
+      if (0 == freqs.d_ft.at(q.first)) {
         continue;
       }
 
       _score_doc +=
-          _calculate_lm(d_ft.at(q.first), index.termCount(index.term(q.first)),
+          _calculate_lm(freqs.d_ft.at(q.first), index.termCount(index.term(q.first)),
                         doc_terms.size(), _coll_len, _mu);
 
       // Score document fields
@@ -85,25 +85,25 @@ public:
           }
 
           field_len += f.end - f.begin;
-          for (size_t i = f.begin; i < f.end; ++i) {
-            auto it = f_ft.find(doc_terms[i]);
-            if (it == f_ft.end()) {
-              f_ft[doc_terms[i]] = 1;
-            } else {
-              ++it->second;
-            }
-          }
+          // for (size_t i = f.begin; i < f.end; ++i) {
+          //   auto it = freqs.f_ft.find(doc_terms[i]);
+          //   if (it == freqs.f_ft.end()) {
+          //     freqs.f_ft[doc_terms[i]] = 1;
+          //   } else {
+          //     ++it->second;
+          //   }
+          // }
         }
 
         if (0 == field_len) {
           continue;
         }
-        if (0 == f_ft.at(q.first)) {
+        if (0 == freqs.f_ft.at(q.first)) {
           continue;
         }
 
         double field_score =
-            _calculate_lm(f_ft.at(q.first),
+            _calculate_lm(freqs.f_ft.at(q.first),
                           index.fieldTermCount(field_str, index.term(q.first)),
                           field_len, _coll_len, _mu);
         _accumulate_score(field_str, field_score);

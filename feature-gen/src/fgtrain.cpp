@@ -124,21 +124,24 @@ int main(int argc, char **argv) {
       // set original run score as a feature for training
       doc_entry.stage0_score = stage0_scores[i];
 
-      f_bm25_atire.compute(doc_entry, qry.stems);
-      f_bm25_trec3.compute(doc_entry, qry.stems);
-      f_bm25_trec3_kmax.compute(doc_entry, qry.stems);
-      f_lmds_2500.compute(doc_entry, qry.stems);
-      f_lmds_1500.compute(doc_entry, qry.stems);
-      f_lmds_1000.compute(doc_entry, qry.stems);
-      tfidf_feature.compute(doc_entry, qry.stems);
-      prob_feature.compute(doc_entry, qry.stems);
-      be_feature.compute(doc_entry, qry.stems);
-      dph_feature.compute(doc_entry, qry.stems);
-      dfr_feature.compute(doc_entry, qry.stems);
+
+      auto freqs = calculate_freqs(*index, doc_entry, qry.stems);
+
+      f_bm25_atire.compute(doc_entry, freqs);
+      f_bm25_trec3.compute(doc_entry, freqs);
+      f_bm25_trec3_kmax.compute(doc_entry, freqs);
+      f_lmds_2500.compute(doc_entry, freqs);
+      f_lmds_1500.compute(doc_entry, freqs);
+      f_lmds_1000.compute(doc_entry, freqs);
+      tfidf_feature.compute(doc_entry, freqs);
+      prob_feature.compute(doc_entry, freqs);
+      be_feature.compute(doc_entry, freqs);
+      dph_feature.compute(doc_entry, freqs);
+      dfr_feature.compute(doc_entry, freqs);
       f_stream.compute(doc_entry, qry.stems);
       features.compute(doc_entry, qry.stems);
       prox_feature.compute(doc_entry, qry);
-      f_tpscore.compute(doc_entry, qry.stems);
+      f_tpscore.compute(doc_entry, qry.stems, freqs);
 
       std::cout << label << "," << qry.id << "," << docno;
       doc_entry.present();

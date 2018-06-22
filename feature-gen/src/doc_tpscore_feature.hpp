@@ -108,13 +108,13 @@ public:
     ranker_bctp.avg_doc_len = _avg_doc_len;
   }
 
-  void compute(fat_cache_entry &doc, std::vector<std::string> &query_stems) {
+  void compute(fat_cache_entry &doc, std::vector<std::string> &query_stems, freqs_entry &freqs) {
     ranker.set_k1(90);
     ranker.set_b(40);
 
     // We could just use the bm25_atire values if it was computed before this
     // feature, instead of computing bm25 again
-    bm25_compute(doc, query_stems);
+    bm25_compute(doc, freqs);
 
     // Calculate BCTP score
     bctp_document bctp_doc;

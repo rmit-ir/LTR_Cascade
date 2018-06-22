@@ -10,11 +10,11 @@ class doc_bm25_atire_feature : public doc_bm25_feature {
 public:
   doc_bm25_atire_feature(indri_index &idx) : doc_bm25_feature(idx) {}
 
-  void compute(fat_cache_entry &doc, std::vector<std::string> &query_stems) {
+  void compute(fat_cache_entry &doc, freqs_entry &freqs) {
     ranker.set_k1(90);
     ranker.set_b(40);
 
-    bm25_compute(doc, query_stems);
+    bm25_compute(doc, freqs);
 
     doc.bm25_atire = _score_doc;
     doc.bm25_atire_body = _score_body;
