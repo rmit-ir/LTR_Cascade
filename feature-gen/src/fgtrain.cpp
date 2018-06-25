@@ -14,6 +14,7 @@
 #include "doc_bm25_atire_feature.hpp"
 #include "doc_bm25_trec3_feature.hpp"
 #include "doc_bm25_trec3_kmax_feature.hpp"
+
 #include "doc_lm_dir_feature.hpp"
 #include "doc_lm_dir_1500_feature.hpp"
 #include "doc_lm_dir_1000_feature.hpp"
@@ -90,7 +91,7 @@ int main(int argc, char **argv) {
   doc_dph_feature dph_feature(*index);
   doc_dfr_feature dfr_feature(*index);
   doc_stream_feature f_stream(*index);
-  doc_tpscore_feature f_tpscore(*index);
+  // doc_tpscore_feature f_tpscore(*index);
 
   for (auto &qry : qtfile.get_queries()) {
     std::vector<double> stage0_scores = trec_run.get_scores(qry.id);
@@ -141,7 +142,7 @@ int main(int argc, char **argv) {
       f_stream.compute(doc_entry, qry.stems);
       features.compute(doc_entry, qry.stems);
       prox_feature.compute(doc_entry, qry);
-      f_tpscore.compute(doc_entry, qry.stems, freqs);
+      // f_tpscore.compute(doc_entry, qry.stems, freqs);
 
       std::cout << label << "," << qry.id << "," << docno;
       doc_entry.present();

@@ -47,26 +47,17 @@ public:
           index.documentCount(index.term(q.first)), doc_terms.size());
 
       // Score document fields
-      auto fields = term_list->fields();
       for (const std::string &field_str : _fields) {
         int field_id = index.field(field_str);
-        size_t field_len = 0;
         if (field_id < 1) {
           // field is not indexed
           continue;
         }
-        for (auto &f : fields) {
-          if (f.id != static_cast<size_t>(field_id)) {
-            continue;
-          }
 
-          field_len += f.end - f.begin;
-        }
-
-        if (0 == field_len) {
+        if (0 == freqs.field_len[field_id]) {
           continue;
         }
-        if (0 == freqs.f_ft.at(q.first)) {
+        if (0 == freqs.f_ft.at(std::make_pair(field_id, q.first))) {
           continue;
         }
 
@@ -81,8 +72,8 @@ public:
           continue;
         }
 
-        double field_score = _calculate_dfr(freqs.f_ft.at(q.first), field_term_cnt,
-                                            field_doc_cnt, field_len);
+        double field_score = _calculate_dfr(freqs.f_ft.at(std::make_pair(field_id, q.first)), field_term_cnt,
+                                            field_doc_cnt, freqs.field_len[field_id]);
         _accumulate_score(field_str, field_score);
       }
     }

@@ -20,41 +20,11 @@ public:
   doc_lm_dir_feature(indri_index &idx) : doc_feature(idx) {}
 
   void compute(fat_cache_entry &doc, freqs_entry &freqs) {
-    // // within query frequency
-    // std::map<uint64_t, uint32_t> q_ft;
-    // // within document frequency
-    // std::map<uint64_t, uint32_t> d_ft;
-    // // within field frequency
-    // std::map<uint64_t, uint32_t> f_ft;
 
     _score_reset();
 
-    // for (auto &s : query_stems) {
-    //   auto tid = index.term(s);
-
-    //   // initialise document term frequency
-    //   freqs.d_ft[tid] = 0;
-    //   // initialise field term frequency
-    //   freqs.f_ft[tid] = 0;
-
-    //   // get query term frequency
-    //   auto it = freqs.q_ft.find(tid);
-    //   if (it == freqs.q_ft.end()) {
-    //     freqs.q_ft[tid] = 1;
-    //   } else {
-    //     ++it->second;
-    //   }
-    // }
-
     const indri::index::TermList *term_list = doc.term_list;
     auto &doc_terms = term_list->terms();
-    // for (auto tid : doc_terms) {
-    //   auto it = freqs.d_ft.find(tid);
-    //   if (it == freqs.d_ft.end()) {
-    //     continue;
-    //   }
-    //   ++it->second;
-    // }
 
     for (auto &q : freqs.q_ft) {
       // skip non-existent terms
@@ -74,38 +44,22 @@ public:
       auto fields = term_list->fields();
       for (const std::string &field_str : _fields) {
         int field_id = index.field(field_str);
-        size_t field_len = 0;
         if (field_id < 1) {
           // field is not indexed
           continue;
         }
-        for (auto &f : fields) {
-          if (f.id != static_cast<size_t>(field_id)) {
-            continue;
-          }
 
-          field_len += f.end - f.begin;
-          // for (size_t i = f.begin; i < f.end; ++i) {
-          //   auto it = freqs.f_ft.find(doc_terms[i]);
-          //   if (it == freqs.f_ft.end()) {
-          //     freqs.f_ft[doc_terms[i]] = 1;
-          //   } else {
-          //     ++it->second;
-          //   }
-          // }
-        }
-
-        if (0 == field_len) {
+        if (0 == freqs.field_len[field_id]) {
           continue;
         }
-        if (0 == freqs.f_ft.at(q.first)) {
+        if (0 == freqs.f_ft.at(std::make_pair(field_id, q.first))) {
           continue;
         }
 
         double field_score =
-            _calculate_lm(freqs.f_ft.at(q.first),
+            _calculate_lm(freqs.f_ft.at(std::make_pair(field_id, q.first)),
                           index.fieldTermCount(field_str, index.term(q.first)),
-                          field_len, _coll_len, _mu);
+                          freqs.field_len[field_id], _coll_len, _mu);
         _accumulate_score(field_str, field_score);
       }
     }
