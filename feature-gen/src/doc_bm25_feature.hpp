@@ -56,9 +56,6 @@ public:
   void bm25_compute(fat_cache_entry &doc, freqs_entry &freqs) {
     _score_reset();
 
-
-    const indri::index::TermList *term_list = doc.term_list;
-
     for (auto &q : freqs.q_ft) {
       // skip non-existent terms
       if (q.first == 0) {
@@ -74,34 +71,23 @@ public:
           doc.length);
 
       // Score document fields
-      auto fields = term_list->fields();
       for (const std::string &field_str : _fields) {
         int field_id = index.field(field_str);
-        size_t field_len = 0;
         if (field_id < 1) {
           // field is not indexed
           continue;
         }
-        for (auto &f : fields) {
-          if (f.id != static_cast<size_t>(field_id)) {
-            continue;
-          }
 
-          field_len += f.end - f.begin;
-
-        }
-
-        if (0 == field_len) {
+        if (0 == freqs.field_len[field_id]) {
           continue;
         }
-        if (0 == freqs.f_ft.at(q.first)) {
+        if (0 == freqs.f_ft.at(std::make_pair(field_id, q.first))) {
           continue;
         }
-
         double field_score = ranker.calculate_docscore(
-            q.second, freqs.f_ft.at(q.first),
+            q.second, freqs.f_ft.at(std::make_pair(field_id, q.first)),
             index.fieldDocumentCount(field_str, index.term(q.first)),
-            field_len);
+            freqs.field_len[field_id]);
         _accumulate_score(field_str, field_score);
       }
     }

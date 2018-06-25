@@ -27,7 +27,9 @@ namespace {
       // within document frequency
       std::map<uint64_t, uint32_t> d_ft;
       // within field frequency
-      std::map<uint64_t, uint32_t> f_ft;
+      std::map<std::pair<size_t, uint64_t>, uint32_t> f_ft;
+
+      std::map<size_t, size_t> field_len;
   };
 
   /**
@@ -68,8 +70,10 @@ namespace {
           doc_data_helper->get_term_frequency(doc_entry.id, tid, index);
 
       // initialise field term frequency
-      freqs.f_ft[tid] = 0;
-
+      for (const std::string &field_str : _fields) {
+        int field_id = index.field(field_str);
+        freqs.f_ft[std::make_pair(field_id, tid)] = 0;
+      }   
       // get query term frequency
       auto it = freqs.q_ft.find(tid);
       if (it == freqs.q_ft.end()) {
@@ -95,7 +99,7 @@ namespace {
       auto fields = term_list->fields();
       for (const std::string &field_str : _fields) {
         int field_id = index.field(field_str);
-        size_t field_len = 0;
+        freqs.field_len[field_id] = 0;
         if (field_id < 1) {
           // field is not indexed
           continue;
@@ -105,13 +109,13 @@ namespace {
             continue;
           }
 
-          field_len += f.end - f.begin;
+          freqs.field_len[field_id] += f.end - f.begin;
 
           // SUPER SLOW
           for (size_t i = f.begin; i < f.end; ++i) {
-            auto it = freqs.f_ft.find(doc_terms[i]);
+            auto it = freqs.f_ft.find(std::make_pair(field_id, doc_terms[i]));
             if (it == freqs.f_ft.end()) {
-              freqs.f_ft[doc_terms[i]] = 1;
+              freqs.f_ft[std::make_pair(field_id, doc_terms[i])] = 1;
             } else {
               ++it->second;
             }

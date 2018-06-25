@@ -41,33 +41,24 @@ public:
                         doc_terms.size(), _coll_len, _mu);
 
       // Score document fields
-      auto fields = term_list->fields();
       for (const std::string &field_str : _fields) {
         int field_id = index.field(field_str);
-        size_t field_len = 0;
         if (field_id < 1) {
           // field is not indexed
           continue;
         }
-        for (auto &f : fields) {
-          if (f.id != static_cast<size_t>(field_id)) {
-            continue;
-          }
 
-          field_len += f.end - f.begin;
-        }
-
-        if (0 == field_len) {
+        if (0 == freqs.field_len[field_id]) {
           continue;
         }
-        if (0 == freqs.f_ft.at(q.first)) {
+        if (0 == freqs.f_ft.at(std::make_pair(field_id, q.first))) {
           continue;
         }
 
         double field_score =
-            _calculate_lm(freqs.f_ft.at(q.first),
+            _calculate_lm(freqs.f_ft.at(std::make_pair(field_id, q.first)),
                           index.fieldTermCount(field_str, index.term(q.first)),
-                          field_len, _coll_len, _mu);
+                          freqs.field_len[field_id], _coll_len, _mu);
         _accumulate_score(field_str, field_score);
       }
     }
