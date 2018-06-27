@@ -142,7 +142,7 @@ int main(int argc, char **argv) {
       f_stream.compute(doc_entry, qry.stems);
       features.compute(doc_entry, qry.stems);
       prox_feature.compute(doc_entry, qry);
-      // f_tpscore.compute(doc_entry, qry.stems, freqs);
+      f_tpscore.compute(doc_entry, qry.stems, freqs);
 
       std::cout << label << "," << qry.id << "," << docno;
       doc_entry.present();
