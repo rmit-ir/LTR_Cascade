@@ -1,3 +1,6 @@
 [submodule "external/WANDbl"]
 	path = external/WANDbl
 	url = https://github.com/lgrz/WANDbl
+[submodule "external/cereal"]
+	path = external/cereal
+	url = git@github.com:USCiLab/cereal.git
