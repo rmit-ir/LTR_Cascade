@@ -49,7 +49,9 @@ namespace {
       it->startIteration();
       if (it->nextEntry(doc_id)) {
         auto doc_data = it->currentEntry();
-        count = doc_data->positions.size();
+        if(doc_data->document == doc_id) {
+          count = doc_data->positions.size();
+        }
       }
 
       delete it;
@@ -73,7 +75,7 @@ namespace {
       for (const std::string &field_str : _fields) {
         int field_id = index.field(field_str);
         freqs.f_ft[std::make_pair(field_id, tid)] = 0;
-      }   
+      }
       // get query term frequency
       auto it = freqs.q_ft.find(tid);
       if (it == freqs.q_ft.end()) {
