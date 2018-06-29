@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <bitset>
 
-WScanner::WScanner(){};
+WScanner::WScanner(){}
 
 WScanner::WScanner(int w_size, bool indri_like, bool is_ordered,
                    bool is_overlap) {
@@ -16,18 +16,18 @@ WScanner::WScanner(int w_size, bool indri_like, bool is_ordered,
   _is_overlap = is_overlap;
   _collection_cnt = 0;
   _indri_like = indri_like;
-};
+}
 
 WScanner::WScanner(const WScanner &another) {
   _w_size = another.w_size();
   _is_overlap = another.is_overlap();
   _collection_cnt = another.collection_cnt();
   _indri_like = another._indri_like;
-};
+}
 
 std::vector<std::pair<lemur::api::DOCID_T, uint64_t>>
 WScanner::window_count(std::vector<indri::index::DocListIterator *> &doc_iters,
-                       int min_term) {
+                       size_t min_term) {
   _collection_cnt = 0;
   std::vector<std::pair<lemur::api::DOCID_T, uint64_t>> window_postings;
   if (_w_size == -1) {
@@ -40,13 +40,13 @@ WScanner::window_count(std::vector<indri::index::DocListIterator *> &doc_iters,
   bool is_end = false;
   indri::utility::greedy_vector<int> pos_list =
       doc_iters[min_term]->currentEntry()->positions;
-  for (int j = 0; j < pos_list.size(); ++j) { //!< init
+  for (size_t j = 0; j < pos_list.size(); ++j) { //!< init
     position_list.push_back(TermPos(min_term, pos_list[j]));
   }
   std::make_heap(position_list.begin(), position_list.end());
   while (doc_iters[min_term]
              ->nextEntry()) { //!< use shortest to get doc id is enough
-    for (int i = 0; i < doc_iters.size(); ++i) {
+    for (size_t i = 0; i < doc_iters.size(); ++i) {
       if (i != min_term) {
         lemur::api::DOCID_T tmp_doc = doc_iters[i]->currentEntry()->document;
         if (tmp_doc < max_doc) {
@@ -66,7 +66,7 @@ WScanner::window_count(std::vector<indri::index::DocListIterator *> &doc_iters,
         }
         if (tmp_doc == curr_doc) {
           pos_list = doc_iters[i]->currentEntry()->positions;
-          for (int j = 0; j < pos_list.size(); ++j) {
+          for (size_t j = 0; j < pos_list.size(); ++j) {
             position_list.push_back(TermPos(i, pos_list[j]));
             std::push_heap(position_list.begin(), position_list.end());
           }
@@ -99,20 +99,20 @@ WScanner::window_count(std::vector<indri::index::DocListIterator *> &doc_iters,
     curr_doc = doc_iters[min_term]->currentEntry()->document;
     max_doc = curr_doc;
     pos_list = doc_iters[min_term]->currentEntry()->positions;
-    for (int j = 0; j < pos_list.size(); ++j) {
+    for (size_t j = 0; j < pos_list.size(); ++j) {
       position_list.push_back(TermPos(min_term, pos_list[j]));
       std::push_heap(position_list.begin(), position_list.end());
     }
   }
   return window_postings;
-};
+}
 
-uint64_t WScanner::_get_uwindows(std::vector<TermPos> &cdf, int qlen) {
+uint64_t WScanner::_get_uwindows(std::vector<TermPos> &cdf, size_t qlen) {
   uint64_t cnt = 0;
   std::sort_heap(cdf.begin(), cdf.end());
   TermPos lhs, rhs;
-  int l = 0;
-  int r = l;
+  size_t l = 0;
+  size_t r = l;
   std::bitset<32> seen; //!< track seen terms
   int last_pos = 0;
   while (l < cdf.size()) {
@@ -147,14 +147,14 @@ uint64_t WScanner::_get_uwindows(std::vector<TermPos> &cdf, int qlen) {
     seen.reset();
   }
   return cnt;
-};
+}
 
-uint64_t WScanner::_get_owindows(std::vector<TermPos> &cdf, int qlen) {
+uint64_t WScanner::_get_owindows(std::vector<TermPos> &cdf, size_t qlen) {
   uint64_t cnt = 0;
   std::sort_heap(cdf.begin(), cdf.end());
   TermPos lhs, rhs;
-  int l = 0;
-  int r = l;
+  size_t l = 0;
+  size_t r = l;
   std::bitset<32> seen; //!< track seen terms
   int last_pos = 0;
   int last_term;
@@ -197,15 +197,15 @@ uint64_t WScanner::_get_owindows(std::vector<TermPos> &cdf, int qlen) {
     seen.reset();
   }
   return cnt;
-};
+}
 
-void WScanner::set_wsize(int size) { _w_size = size; };
+void WScanner::set_wsize(int size) { _w_size = size; }
 
-int WScanner::w_size() const { return _w_size; };
+int WScanner::w_size() const { return _w_size; }
 
-bool WScanner::is_ordered() const { return _is_ordered; };
+bool WScanner::is_ordered() const { return _is_ordered; }
 
-bool WScanner::is_overlap() const { return _is_overlap; };
+bool WScanner::is_overlap() const { return _is_overlap; }
 
 uint64_t WScanner::collection_cnt() const { return _collection_cnt; }
 
