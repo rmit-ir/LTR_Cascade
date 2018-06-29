@@ -28,8 +28,8 @@ struct TermPos {
     t_pos = another.t_pos;
   }
 
-  int t_pos;
   int t_idx;
+  int t_pos;
 
   bool operator<(const TermPos &another) const { return t_pos < another.t_pos; }
   bool operator>(const TermPos &another) const { return t_pos > another.t_pos; }
@@ -53,7 +53,7 @@ public:
    */
   std::vector<std::pair<lemur::api::DOCID_T, uint64_t>>
   window_count(std::vector<indri::index::DocListIterator *> &doc_iters,
-               int min_term);
+               size_t min_term);
 
   //!< for check
   int w_size() const;
@@ -76,7 +76,7 @@ protected:
    * @param cdf. *vector* of position list.
    * @return
    */
-  uint64_t _get_uwindows(std::vector<TermPos> &cdf, int qlen);
+  uint64_t _get_uwindows(std::vector<TermPos> &cdf, size_t qlen);
   /**
    * get ordered window, same process, but need to additionally
    * get the order same as in the original query
@@ -84,7 +84,7 @@ protected:
    * @param qlen
    * @return
    */
-  uint64_t _get_owindows(std::vector<TermPos> &cdf, int qlen);
+  uint64_t _get_owindows(std::vector<TermPos> &cdf, size_t qlen);
 
 private:
   int _w_size;
