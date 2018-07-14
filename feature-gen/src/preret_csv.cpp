@@ -4,7 +4,6 @@
 #include <fstream>
 #include <string>
 
-#include "indri_bridge.hpp"
 #include "query_train_file.hpp"
 #include "trec_run_file.hpp"
 

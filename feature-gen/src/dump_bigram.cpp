@@ -236,7 +236,7 @@ std::vector<std::string> uniq_terms(const std::vector<std::string> &qry,
                                     QueryEnvironment &qry_env) {
   std::vector<std::string> qry_tokens;        //!< original order must be kept
   std::unordered_set<std::string> uniq_terms; //!< deduplicate
-  for (int i = 0; i < qry.size(); ++i) {
+  for (size_t i = 0; i < qry.size(); ++i) {
     std::string curr_token = qry_env.stemTerm(qry[i]);
     if (uniq_terms.empty() || uniq_terms.find(curr_token) == uniq_terms.end()) {
       //            std::cout<<curr_token<<std::endl;
