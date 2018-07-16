@@ -1,16 +1,16 @@
 #ifndef STRBUF_H
 #define STRBUF_H
 
+#include <assert.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <string.h>
-#include <assert.h>
 
 struct strbuf {
-  char *data;
-  int len;
-  int cap;
+    char *data;
+    int   len;
+    int   cap;
 };
 
 struct strbuf *strbuf_new(void);
