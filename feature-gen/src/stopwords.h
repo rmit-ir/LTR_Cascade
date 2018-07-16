@@ -1,9 +1,7 @@
+#pragma once
 /*
  * Standard list of 418 stopwords commonly used.
  */
-
-#ifndef STOPWORD_H
-#define STOPWORD_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -851,6 +849,4 @@ const char *fgen_krovetz_stopwords[] = {"a",
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

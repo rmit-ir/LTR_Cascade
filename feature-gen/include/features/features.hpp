@@ -14,8 +14,9 @@
 
 #include "bose_einstein/doc_be_feature.hpp"
 
-#include "dph/doc_dph_feature.hpp"
 #include "dfr/doc_dfr_feature.hpp"
+
+#include "dph/doc_dph_feature.hpp"
 
 #include "probability/doc_prob_feature.hpp"
 

@@ -1,8 +1,4 @@
 #pragma once
-
-/**
- * DFR: Bose-Einstien
- */
 class doc_be_feature : public doc_feature {
   // Doc body
   double score_be = 0;

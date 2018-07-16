@@ -6,6 +6,7 @@
  * BM25 using Atire's parameters.
  */
 class doc_bm25_atire_feature : public doc_bm25_feature {
+
 public:
   doc_bm25_atire_feature(indri_index &idx) : doc_bm25_feature(idx) {}
 

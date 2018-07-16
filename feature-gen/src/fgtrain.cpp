@@ -5,10 +5,10 @@
 #include <iostream>
 #include <string>
 
-#include "freqs_entry.hpp"
+#include "cereal/archives/binary.hpp"
 #include "doc_entry.hpp"
 #include "features/features.hpp"
-
+#include "freqs_entry.hpp"
 
 #include "query_train_file.hpp"
 #include "trec_run_file.hpp"
@@ -111,9 +111,7 @@ int main(int argc, char **argv) {
             auto &freqs = fwd_idx[docid];
             freqs.q_ft  = calculate_q_freqs(*index, qry.stems);
 
-            // FIX this
-            std::vector<uint64_t> term_list;
-            doc_entry             doc_entry(docid, freqs.pagerank, term_list);
+            doc_entry             doc_entry(docid, freqs.pagerank, freqs.term_list);
 
             // set url_slash_count as feature for training
             doc_entry.url_slash_count = freqs.url_stats.url_slash_count;
@@ -142,7 +140,7 @@ int main(int argc, char **argv) {
         }
         auto stop      = clock::now();
         auto load_time = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-        std::cerr << "qid: " << qry.id << " in " << load_time.count() << " ms" << std::endl;
+        std::cerr << "qid: " << qry.id << ", "<< docids.size() << " docs in " << load_time.count() << " ms" << std::endl;
     }
     return 0;
 }
