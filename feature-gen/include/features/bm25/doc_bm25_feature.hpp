@@ -3,16 +3,11 @@
 #include <cmath>
 #include <freqs_entry.hpp>
 
-/**
- * Copied from WANDbl without the template so it is easier to repurpose at
- * runtime.
- */
 struct rank_bm25 {
     const double epsilon_score = 1e-6;
     double       k1;
     double       b;
     size_t       num_docs;
-    size_t       num_terms;
     double       avg_doc_len;
 
     void   set_k1(const uint32_t n) { k1 = n / 100.0; }
@@ -38,7 +33,6 @@ class doc_bm25_feature : public doc_feature {
     doc_bm25_feature(indri_index &idx) : doc_feature(idx) {
 
         ranker.num_docs    = _num_docs;
-        ranker.num_terms   = _coll_len;
         ranker.avg_doc_len = _avg_doc_len;
     }
 

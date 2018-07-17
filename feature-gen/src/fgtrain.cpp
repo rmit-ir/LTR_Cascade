@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
     doc_bm25_trec3_feature      f_bm25_trec3(*index);
     doc_bm25_trec3_kmax_feature f_bm25_trec3_kmax(*index);
     doc_proximity_feature       prox_feature(*index);
-    doc_lm_dir_feature          f_lmds_2500(*index);
+    doc_lm_dir_2500_feature     f_lmds_2500(*index);
     doc_lm_dir_1500_feature     f_lmds_1500(*index);
     doc_lm_dir_1000_feature     f_lmds_1000(*index);
     doc_tfidf_feature           tfidf_feature(*index);

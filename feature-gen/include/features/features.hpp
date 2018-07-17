@@ -8,7 +8,7 @@
 
 #include "lmds/doc_lm_dir_1000_feature.hpp"
 #include "lmds/doc_lm_dir_1500_feature.hpp"
-#include "lmds/doc_lm_dir_feature.hpp"
+#include "lmds/doc_lm_dir_2500_feature.hpp"
 
 #include "tf_idf/doc_tfidf_feature.hpp"
 
