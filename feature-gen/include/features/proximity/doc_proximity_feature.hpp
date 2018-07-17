@@ -1,5 +1,4 @@
-#ifndef PROXIMITY_FEATURE_HPP
-#define PROXIMITY_FEATURE_HPP
+#pragma once
 
 #include <algorithm>
 #include <iostream>
@@ -47,8 +46,8 @@ class doc_proximity_feature {
    public:
     doc_proximity_feature(indri_index &idx) : index(idx) {
         ranker.num_docs    = index.documentCount();
-        ranker.num_terms   = index.termCount();
-        ranker.avg_doc_len = (double)ranker.num_terms / ranker.num_docs;
+        auto num_terms     = index.termCount();
+        ranker.avg_doc_len = (double)num_terms / ranker.num_docs;
     }
 
     void compute(doc_entry &doc, query_train &query) {
@@ -276,5 +275,3 @@ class doc_proximity_feature {
 
     void set_ranker(const bm25_proximity<> &r) { ranker = r; }
 };
-
-#endif

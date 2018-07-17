@@ -111,7 +111,7 @@ int main(int argc, char **argv) {
             auto &freqs = fwd_idx[docid];
             freqs.q_ft  = calculate_q_freqs(*index, qry.stems);
 
-            doc_entry             doc_entry(docid, freqs.pagerank, freqs.term_list);
+            doc_entry             doc_entry(docid, freqs.pagerank);
 
             // set url_slash_count as feature for training
             doc_entry.url_slash_count = freqs.url_stats.url_slash_count;

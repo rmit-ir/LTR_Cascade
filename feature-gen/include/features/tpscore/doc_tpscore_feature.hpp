@@ -11,33 +11,16 @@ struct bctp_term {
     int    doc_count   = 0;
 };
 
-struct bctp_document {
-    int              id;
-    std::vector<int> positions;
-    int              length = 0;
-
-    void set_positions(std::vector<uint64_t> _positions) {
-        positions.clear();
-        positions.reserve(_positions.size());
-        for (size_t i = 0; i < _positions.size(); ++i) {
-            positions.push_back(_positions[i]);
-        }
-    }
-};
-
 struct bctp_scorer {
-    size_t num_terms   = 0;
     size_t num_docs    = 0;
     double k1          = 0.9;
     double b           = 0.4;
     double avg_doc_len = 0.0;
 
-    bctp_scorer() {}
-
-    double score(std::vector<bctp_term> &terms, bctp_document &doc) {
+    double score(std::vector<bctp_term> &terms, doc_entry &doc, FreqsEntry &freqs) {
         double score = 0.0;
 
-        if (terms.size() < 3 || static_cast<size_t>(doc.length) < terms.size()) {
+        if (terms.size() < 3 || doc.length < terms.size()) {
             return score;
         }
 
@@ -45,7 +28,7 @@ struct bctp_scorer {
         for (auto &t : terms) {
             term_map.insert(std::make_pair(t.id, &t));
         }
-        score_terms(term_map, doc.positions);
+        score_terms(term_map, freqs.term_list);
 
         for (auto const &term : terms) {
             double weight = std::min(1.0, term.weight);
@@ -59,7 +42,7 @@ struct bctp_scorer {
         return score;
     }
 
-    void score_terms(std::map<int, bctp_term *> &terms, std::vector<int> &doc_positions) {
+    void score_terms(std::map<int, bctp_term *> &terms, const std::vector<uint64_t> &doc_positions) {
         bctp_term *curr_term = nullptr;
         bctp_term *prev_term = nullptr;
         size_t     prev_pos  = 0;
@@ -99,7 +82,6 @@ class doc_tpscore_feature : public doc_bm25_feature {
    public:
     doc_tpscore_feature(indri_index &idx) : doc_bm25_feature(idx) {
         ranker_bctp.num_docs    = _num_docs;
-        ranker_bctp.num_terms   = _coll_len;
         ranker_bctp.avg_doc_len = _avg_doc_len;
     }
 
@@ -111,27 +93,15 @@ class doc_tpscore_feature : public doc_bm25_feature {
         // feature, instead of computing bm25 again
         bm25_compute(doc, freqs);
 
-        // Calculate BCTP score
-        bctp_document bctp_doc;
-        bctp_doc.id     = doc.id;
-        bctp_doc.length = doc.length;
-        bctp_doc.set_positions(doc.term_list);
-
         std::vector<bctp_term> bctp_query;
         for (auto &q : freqs.q_ft) {
             bctp_term t;
-
             t.id        = q.first;
-            t.doc_count = freqs.d_ft[q.first];
+            t.doc_count = index.documentCount(index.term(q.first));
             bctp_query.push_back(t);
         }
 
-        double tp_score = ranker_bctp.score(bctp_query, bctp_doc);
-        if (std::isnan(tp_score)) {
-            std::cerr << "`tp_score` resulted in nan" << std::endl;
-            exit(1);
-        }
-
+        double tp_score = ranker_bctp.score(bctp_query, doc, freqs);
         // The TP-Score is BM25 + BCTP
         doc.tpscore = _score_doc + tp_score;
     }

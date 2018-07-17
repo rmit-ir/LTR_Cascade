@@ -12,29 +12,7 @@ struct bm25_proximity {
     static const double   b;
     static const double   epsilon_score;
     size_t                num_docs;
-    size_t                num_terms;
     double                avg_doc_len;
-    double                min_doc_len;
-    std::vector<uint64_t> doc_lengths;
-
-    static std::string name() { return "bm25_proximity"; }
-
-    bm25_proximity() {}
-
-    bm25_proximity &operator=(const bm25_proximity &) = default;
-
-    bm25_proximity(std::vector<uint64_t> doc_len, uint64_t terms)
-        : bm25_proximity(doc_len, terms, doc_len.size()) {}
-
-    bm25_proximity(std::vector<uint64_t> doc_len, uint64_t terms, uint64_t numdocs)
-        : num_docs(numdocs), avg_doc_len((double)terms / (double)numdocs) {
-        doc_lengths = std::move(doc_len);
-    }
-
-    bm25_proximity(uint64_t docs, uint64_t terms)
-        : num_docs(docs), num_terms(terms), avg_doc_len((double)terms / docs) {}
-
-    double doc_length(size_t doc_id) const { return (double)doc_lengths[doc_id]; }
 
     double score(const double f_qt, const double f_dt, const double f_t, const double W_d) const {
         double w_qt = std::max(epsilon_score, std::log((num_docs / f_t) * f_qt));

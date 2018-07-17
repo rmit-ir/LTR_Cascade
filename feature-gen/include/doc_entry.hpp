@@ -14,7 +14,7 @@ struct doc_entry {
     // doc id for convenience
     int id = 0;
 
-    int length = 0;
+    size_t length = 0;
 
     double pagerank = 0;
     // Score from training trec run file
@@ -174,10 +174,8 @@ struct doc_entry {
     // URL length
     size_t url_length = 0;
 
-    const std::vector<uint64_t> &term_list;
-
-    doc_entry(int i, double pr, const std::vector<uint64_t> &term_list)
-        : id(i), pagerank(pr), term_list(term_list) {}
+    doc_entry(int i, double pr)
+        : id(i), pagerank(pr) {}
 
     friend std::ostream &operator<<(std::ostream &os, const doc_entry &de);
 };
