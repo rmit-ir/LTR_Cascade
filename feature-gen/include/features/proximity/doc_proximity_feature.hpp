@@ -269,9 +269,5 @@ class doc_proximity_feature {
         term_vec.insert(term_itr, term_el);
     }
 
-    double get_score() const { return score; }
 
-    void set_term_data_map(const std::map<uint64_t, term_data> &data) { term_data_map = data; }
-
-    void set_ranker(const bm25_proximity<> &r) { ranker = r; }
 };

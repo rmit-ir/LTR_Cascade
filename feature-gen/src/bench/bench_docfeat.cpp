@@ -11,17 +11,7 @@
 #include "query_train_file.hpp"
 #include "trec_run_file.hpp"
 
-#include "document_features.hpp"
-#include "doc_bm25_atire_feature.hpp"
-#include "doc_lm_dir_feature.hpp"
-#include "doc_tfidf_feature.hpp"
-#include "doc_prob_feature.hpp"
-#include "doc_be_feature.hpp"
-#include "doc_dph_feature.hpp"
-#include "doc_dfr_feature.hpp"
-#include "doc_stream_feature.hpp"
-#include "doc_tpscore_feature.hpp"
-#include "doc_proximity_feature.hpp"
+#include "features.hpp"
 #include "bench.hpp"
 
 static void display_usage(char *name) {

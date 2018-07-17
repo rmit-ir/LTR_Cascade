@@ -3,8 +3,8 @@
 /**
  * Language model with Dirichlet smoothing, mu set to Indri's default.
  */
+template <size_t _mu>
 class doc_lm_dir_feature : public doc_feature {
-    const double _mu = 2500.0;
 
     double _calculate_lm(uint32_t d_f, uint64_t c_f, uint32_t dlen, uint64_t clen, double mu) {
         double numerator   = d_f + mu * c_f / clen;
@@ -15,7 +15,7 @@ class doc_lm_dir_feature : public doc_feature {
    public:
     doc_lm_dir_feature(indri_index &idx) : doc_feature(idx) {}
 
-    void compute(doc_entry &doc, FreqsEntry &freqs) {
+    void lm_dir_compute(doc_entry &doc, FreqsEntry &freqs) {
 
         _score_reset();
 
