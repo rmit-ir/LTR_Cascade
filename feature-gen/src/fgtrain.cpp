@@ -19,6 +19,8 @@
 #include "query_train_file.hpp"
 #include "trec_run_file.hpp"
 
+#include "query_environment_adapter.hpp"
+
 int main(int argc, char **argv) {
 
     std::string query_file;
@@ -55,7 +57,7 @@ int main(int argc, char **argv) {
     // load fwd_idx
     std::ifstream              ifs_fwd(forward_index_file);
     cereal::BinaryInputArchive iarchive_fwd(ifs_fwd);
-    FwdIdx                     fwd_idx;
+    ForwardIndex                     fwd_idx;
     iarchive_fwd(fwd_idx);
 
     auto stop      = clock::now();
@@ -80,8 +82,7 @@ int main(int argc, char **argv) {
         std::cerr << "Could not open file: " << query_file << std::endl;
         exit(EXIT_FAILURE);
     }
-    query_train_file qtfile(ifs, qry_env, lexicon);
-    qtfile.parse();
+    query_train_file qtfile(ifs, lexicon);
     ifs.close();
     ifs.clear();
 

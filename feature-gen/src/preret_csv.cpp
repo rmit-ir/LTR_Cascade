@@ -16,6 +16,7 @@
 
 #include "CLI/CLI.hpp"
 #include "cereal/archives/binary.hpp"
+#include "query_environment_adapter.hpp"
 
 char *stdstr_to_cstr(const std::string &s) {
     char *cstr = new char[s.size() + 1];
@@ -57,8 +58,7 @@ int main(int argc, char **argv) {
         std::cerr << "Could not open file: " << query_file << std::endl;
         exit(EXIT_FAILURE);
     }
-    query_train_file qtfile(ifs, qry_env, lexicon);
-    qtfile.parse();
+    query_train_file qtfile(ifs, lexicon);
     ifs.close();
     ifs.clear();
 

@@ -1,23 +1,16 @@
 #pragma once
 
-#include <cstdint>
-#include <cstdlib>
 #include <fstream>
-#include <iostream>
-#include <sstream>
-#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-#include "lexicon.hpp"
-#include "query_environment_adapter.hpp"
+#include "indri/QueryEnvironment.hpp"
 
+#include "lexicon.hpp"
 struct query_train {
     // query id
     int id;
-    // query terms
-    std::vector<std::string> terms;
     // stemmed query terms
     std::vector<std::string> stems;
     // terms by id
@@ -29,21 +22,11 @@ struct query_train {
 };
 
 class query_train_file {
-    const unsigned int         fields = 2;
-    std::vector<query_train>   rows;
-    std::ifstream &            ifs;
-    query_environment_adapter &env;
-    Lexicon &lexicon;
+    const unsigned int       fields = 2;
+    std::vector<query_train> rows;
+    std::ifstream &          ifs;
+    Lexicon &                lexicon;
 
-   public:
-    query_train_file(std::ifstream &            infile,
-                     query_environment_adapter &qry_adapter,
-                     Lexicon &lex)
-        : ifs(infile), env(qry_adapter), lexicon(lex) {}
-
-    /**
-     * Parse requests from file format.
-     */
     void parse() {
         std::vector<std::string> parts;
         std::string              line;
@@ -67,9 +50,9 @@ class query_train_file {
             iss.clear();
             iss.str(parts[1]);
             while (iss >> str) {
-                std::string stem = env.stem_term(str);
-                uint64_t    term_id = lexicon.term(stem); // `Index::term` takes stemmed version of a term
-                row.terms.push_back(str);
+                std::string stem = str;
+                uint64_t    term_id =
+                    lexicon.term(stem); // `Index::term` takes stemmed version of a term
                 row.stems.push_back(stem);
                 row.tids.push_back(term_id);
                 row.pos.push_back(count++);
@@ -81,8 +64,11 @@ class query_train_file {
         }
     }
 
-    /**
-     * Get rows.
-     */
+   public:
+    query_train_file(std::ifstream &infile, Lexicon &lex)
+        : ifs(infile), lexicon(lex) {
+        parse();
+    }
+
     std::vector<query_train> &get_queries() { return rows; }
 };
