@@ -5,7 +5,9 @@
 #include <iostream>
 #include <string>
 
+#include "CLI/CLI.hpp"
 #include "cereal/archives/binary.hpp"
+
 #include "doc_entry.hpp"
 #include "field_id.hpp"
 
@@ -17,30 +19,25 @@
 #include "query_train_file.hpp"
 #include "trec_run_file.hpp"
 
-static void display_usage(char *name) {
-    std::cerr << "usage: " << name
-              << " <query file> <trec file> <indri repository> <forward index> <lexicon> "
-                 "<output file>"
-              << std::endl;
-    exit(EXIT_FAILURE);
-}
-
-/**
- * Generate document features and output to CSV format.
- */
 int main(int argc, char **argv) {
-    if (argc < 7) {
-        display_usage(argv[0]);
-    }
 
-    std::string query_file         = argv[1];
-    std::string trec_file          = argv[2];
-    std::string repo_path          = argv[3];
-    std::string forward_index_file = argv[4];
-    std::string lexicon_file       = argv[5];
+    std::string query_file;
+    std::string trec_file;
+    std::string repo_path;
+    std::string forward_index_file;
+    std::string lexicon_file;
+    std::string output_file;
 
-    std::string output_file = argv[5];
-    auto        outfile     = std::ofstream(output_file, std::ofstream::app);
+    CLI::App app{"A feature generation app."};
+    app.add_option("query_file", query_file, "Query file")->required();
+    app.add_option("trec_file", trec_file, "TREC run file")->required();
+    app.add_option("repo_path", repo_path, "Indri repo path")->required();
+    app.add_option("forward_index_file", forward_index_file, "Forward index file")->required();
+    app.add_option("lexicon_file", lexicon_file, "Lexicon file")->required();
+    app.add_option("output_file", output_file, "Output file")->required();
+    CLI11_PARSE(app, argc, argv);
+
+    auto outfile = std::ofstream(output_file, std::ofstream::app);
     outfile << std::fixed << std::setprecision(5);
 
     query_environment         indri_env;
@@ -83,7 +80,7 @@ int main(int argc, char **argv) {
     std::cerr << "Loaded " << forward_index_file << " in " << load_time.count() << " ms"
               << std::endl;
 
-    start  = clock::now();
+    start = clock::now();
     // load lexicon
     std::ifstream              lexicon_f(lexicon_file);
     cereal::BinaryInputArchive iarchive_lex(lexicon_f);
@@ -92,10 +89,9 @@ int main(int argc, char **argv) {
 
     stop      = clock::now();
     load_time = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-    std::cerr << "Loaded " << lexicon_file << " in " << load_time.count() << " ms"
-              << std::endl;
+    std::cerr << "Loaded " << lexicon_file << " in " << load_time.count() << " ms" << std::endl;
 
-    FieldIdMap field_id_map;
+    FieldIdMap                     field_id_map;
     const std::vector<std::string> idx_fields = {
         "title", "heading", "mainbody", "inlink", "applet", "object", "embed"};
     for (const std::string &field_str : idx_fields) {

@@ -4,3 +4,6 @@
 [submodule "external/cereal"]
 	path = external/cereal
 	url = git@github.com:USCiLab/cereal.git
+[submodule "external/CLI11"]
+	path = external/CLI11
+	url = git@github.com:CLIUtils/CLI11.git
