@@ -32,10 +32,9 @@ struct term_data {
 };
 
 class doc_proximity_feature {
-    using indri_index = indri::index::Index;
 
     const int        cdf_empty = -1;
-    indri_index &    index;
+    Lexicon &        lexicon;
     bm25_proximity<> ranker;
     size_t           feature_id = 0;
     double           score      = 0.0;
@@ -44,60 +43,46 @@ class doc_proximity_feature {
     std::map<uint64_t, term_data> term_data_map;
 
    public:
-    doc_proximity_feature(indri_index &idx) : index(idx) {
-        ranker.num_docs    = index.documentCount();
-        auto num_terms     = index.termCount();
+    doc_proximity_feature(Lexicon & lex) : lexicon(lex) {
+        ranker.num_docs    = lex.document_count();
+        auto num_terms     = lex.term_count();
         ranker.avg_doc_len = (double)num_terms / ranker.num_docs;
     }
 
-    void compute(doc_entry &doc, query_train &query) {
+    void compute(doc_entry &doc, query_train &query, FreqsEntry &freqs) {
         score = 0.0;
 
         // condensed direct file
         std::vector<std::pair<uint64_t, int>> cdf;
-        // get map of term id's and positions
-        std::map<int, indri::utility::greedy_vector<int>> qry_positions;
         // for tp_interval_score
         std::vector<indri::utility::greedy_vector<int>> acc_positions;
         std::vector<term_data>                          acc_terms;
 
         int i = 0;
+        int s = 0;
         for (auto &tid : query.tids) {
             // a missing term has key `0`
             if (tid > 0) {
-                auto *iter = index.docListIterator(tid);
-                iter->startIteration();
-                iter->nextEntry(doc.id);
-                if (!iter) {
-                    continue;
-                }
-                auto doc_data = iter->currentEntry();
-                /*
-                 * `doc_data->document` will be the next id greater than `docid`
-                 * if term does not exist in docid.
-                 */
-                if (doc_data && doc_data->document == doc.id) {
-                    qry_positions[tid] = doc_data->positions;
-
+                if (freqs.positions[tid].size() !=0) {
+                    ++s;
                     term_data curr_term(tid,
-                                        index.documentCount(index.term(tid)),
-                                        qry_positions[tid].size(),
-                                        ranker.calculate_wq(qry_positions[tid].size()),
+                                        lexicon[tid].document_count(),
+                                        freqs.positions[tid].size(),
+                                        ranker.calculate_wq(freqs.positions[tid].size()),
                                         query.pos[i]);
                     term_data_map.insert(std::pair<uint64_t, term_data>(tid, curr_term));
 
-                    _acc_positions_insert(acc_positions, doc_data->positions, acc_terms, curr_term);
+                    _acc_positions_insert(acc_positions, freqs.positions[tid], acc_terms, curr_term);
 
-                    for (auto pos : doc_data->positions) {
+                    for (auto pos : freqs.positions[tid]) {
                         cdf.push_back(std::make_pair(tid, pos));
                     }
                 }
-                delete iter;
             }
             ++i;
         }
 
-        if (qry_positions.size() < 2) {
+        if (s < 2) {
             return;
         }
 
@@ -248,7 +233,7 @@ class doc_proximity_feature {
      * Vector insert ordered by f_dt. Xiaolu, et al.
      */
     void _acc_positions_insert(std::vector<indri::utility::greedy_vector<int>> &pos_vec,
-                               indri::utility::greedy_vector<int> &             pos_el,
+                               std::vector<uint64_t> &                          pos_el,
                                std::vector<term_data> &                         term_vec,
                                term_data &                                      term_el) {
 

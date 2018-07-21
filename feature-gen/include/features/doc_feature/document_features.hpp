@@ -6,14 +6,9 @@
 #include <string>
 #include <vector>
 
-
 #include "indri/Index.hpp"
 
 class document_features {
-  using indri_index = indri::index::Index;
-
-  indri_index &index;
-
   // The frequency of query terms within the <title> tag
   size_t tag_title_qry_count = 0;
   // The frequency of query terms within the <mainbody> tag
@@ -41,9 +36,8 @@ class document_features {
   static std::map<std::string, uint16_t> field_lookup;
 
 public:
-  document_features(indri_index &i) : index(i) {}
 
-  void compute(doc_entry &doc, FreqsEntry &freqs) {
+  void compute(doc_entry &doc, FreqsEntry &freqs, FieldIdMap &field_id_map) {
 
     /*
      * List of fields for the current document. The field `id` indicates which
@@ -53,7 +47,7 @@ public:
     const std::vector<std::string> idx_fields = {
         "title", "heading", "mainbody", "inlink", "applet", "object", "embed"};
     for (auto field_str : idx_fields) {
-      int field_id = index.field(field_str);
+      int field_id = field_id_map[field_str];
       if (field_id < 1) {
         // field does not exist
         std::cerr << "field '" << field_str << "' does not exist" << std::endl;

@@ -1,7 +1,6 @@
 #pragma once
-/**
- * DFR: DPH
- */
+#include "lexicon.hpp"
+
 class doc_dfr_feature : public doc_feature {
   double _calculate_dfr(uint32_t d_f, uint64_t c_f, uint32_t c_idf,
                         uint32_t dlen) {
@@ -18,12 +17,9 @@ class doc_dfr_feature : public doc_feature {
   }
 
 public:
-  doc_dfr_feature(indri_index &idx) : doc_feature(idx) {}
+  doc_dfr_feature(Lexicon &lex) : doc_feature(lex) {}
 
-  void compute(doc_entry &doc, FreqsEntry &freqs) {
-
-    _score_reset();
-
+  void compute(doc_entry &doc, FreqsEntry &freqs, FieldIdMap &field_id_map) {
     for (auto &q : freqs.q_ft) {
       // skip non-existent terms
       if (q.first == 0) {
@@ -35,12 +31,12 @@ public:
       }
 
       _score_doc += _calculate_dfr(
-          freqs.d_ft.at(q.first), index.termCount(index.term(q.first)),
-          index.documentCount(index.term(q.first)), freqs.doc_length);
+          freqs.d_ft.at(q.first), lexicon[q.first].term_count(),
+          lexicon[q.first].document_count(), freqs.doc_length);
 
       // Score document fields
       for (const std::string &field_str : _fields) {
-        int field_id = index.field(field_str);
+        int field_id = field_id_map[field_str];
         if (field_id < 1) {
           // field is not indexed
           continue;
@@ -53,13 +49,13 @@ public:
           continue;
         }
 
-        int field_term_cnt =
-            index.fieldTermCount(field_str, index.term(q.first));
+        int field_term_cnt =lexicon[q.first].field_term_count(field_id);
+
         if (0 == field_term_cnt) {
           continue;
         }
-        int field_doc_cnt =
-            index.fieldDocumentCount(field_str, index.term(q.first));
+        int field_doc_cnt = lexicon[q.first].field_document_count(field_id);
+
         if (0 == field_doc_cnt) {
           continue;
         }

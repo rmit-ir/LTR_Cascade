@@ -4,15 +4,7 @@
 struct TermPos {
     TermPos() = default;
 
-    TermPos(size_t order, uint64_t pos) {
-        m_order = order;
-        m_pos   = pos;
-    }
-
-    TermPos(const TermPos &another) {
-        m_pos   = another.m_pos;
-        m_order = another.m_order;
-    }
+    TermPos(size_t order, uint64_t pos) : m_order(order), m_pos(pos) {}
 
     size_t   m_order;
     uint64_t m_pos;
@@ -23,10 +15,6 @@ struct TermPos {
  */
 class TPDist {
    public:
-    TPDist() = default;
-
-    ~TPDist(){};
-
     static std::pair<double, double> calc_tp_dist(const indri::utility::greedy_vector<int> &pos_i,
                                                   const indri::utility::greedy_vector<int> &pos_j,
                                                   const double                              w_i,

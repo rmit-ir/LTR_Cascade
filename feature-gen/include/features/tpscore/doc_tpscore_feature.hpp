@@ -69,7 +69,6 @@ struct bctp_scorer {
         if (num_doc_term == 0) {
             return 0;
         }
-
         return std::log(num_docs / num_doc_term);
     }
 
@@ -80,29 +79,30 @@ class doc_tpscore_feature : public doc_bm25_feature {
     bctp_scorer ranker_bctp;
 
    public:
-    doc_tpscore_feature(indri_index &idx) : doc_bm25_feature(idx) {
+    doc_tpscore_feature(Lexicon &lex) : doc_bm25_feature(lex) {
         ranker_bctp.num_docs    = _num_docs;
         ranker_bctp.avg_doc_len = _avg_doc_len;
     }
 
-    void compute(doc_entry &doc, FreqsEntry &freqs) {
-        ranker.set_k1(90);
-        ranker.set_b(40);
-
-        // We could just use the bm25_atire values if it was computed before this
-        // feature, instead of computing bm25 again
-        bm25_compute(doc, freqs);
+    void compute(doc_entry &doc, FreqsEntry &freqs, FieldIdMap &field_id_map) {
+        auto bm25_atire = doc.bm25_atire;
+        if(bm25_atire == 0) {
+            ranker.set_k1(90);
+            ranker.set_b(40);
+            bm25_compute(doc, freqs, field_id_map);
+            bm25_atire = _score_doc;
+        }
 
         std::vector<bctp_term> bctp_query;
         for (auto &q : freqs.q_ft) {
             bctp_term t;
             t.id        = q.first;
-            t.doc_count = index.documentCount(index.term(q.first));
+            t.doc_count = lexicon[q.first].document_count();
             bctp_query.push_back(t);
         }
 
         double tp_score = ranker_bctp.score(bctp_query, doc, freqs);
         // The TP-Score is BM25 + BCTP
-        doc.tpscore = _score_doc + tp_score;
+        doc.tpscore = bm25_atire + tp_score;
     }
 };

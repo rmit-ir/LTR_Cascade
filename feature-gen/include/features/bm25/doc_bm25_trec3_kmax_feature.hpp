@@ -6,13 +6,13 @@
  */
 class doc_bm25_trec3_kmax_feature : public doc_bm25_feature {
 public:
-  doc_bm25_trec3_kmax_feature(indri_index &idx) : doc_bm25_feature(idx) {}
+  doc_bm25_trec3_kmax_feature(Lexicon &lex) : doc_bm25_feature(lex) {}
 
-  void compute(doc_entry &doc, FreqsEntry &freqs) {
+  void compute(doc_entry &doc, FreqsEntry &freqs, FieldIdMap &field_id_map) {
     ranker.set_k1(200);
     ranker.set_b(75);
 
-    bm25_compute(doc, freqs);
+    bm25_compute(doc, freqs, field_id_map);
 
     doc.bm25_trec3_kmax = _score_doc;
     doc.bm25_trec3_kmax_body = _score_body;

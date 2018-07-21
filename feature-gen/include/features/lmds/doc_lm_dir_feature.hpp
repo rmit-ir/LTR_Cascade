@@ -1,4 +1,5 @@
 #pragma once
+#include "lexicon.hpp"
 
 /**
  * Language model with Dirichlet smoothing, mu set to Indri's default.
@@ -13,12 +14,9 @@ class doc_lm_dir_feature : public doc_feature {
     }
 
    public:
-    doc_lm_dir_feature(indri_index &idx) : doc_feature(idx) {}
+    doc_lm_dir_feature(Lexicon &lex) : doc_feature(lex) {}
 
-    void lm_dir_compute(doc_entry &doc, FreqsEntry &freqs) {
-
-        _score_reset();
-
+    void lm_dir_compute(doc_entry &doc, FreqsEntry &freqs, FieldIdMap &field_id_map) {
         for (auto &q : freqs.q_ft) {
             // skip non-existent terms
             if (q.first == 0) {
@@ -30,14 +28,14 @@ class doc_lm_dir_feature : public doc_feature {
             }
 
             _score_doc += _calculate_lm(freqs.d_ft.at(q.first),
-                                        index.termCount(index.term(q.first)),
+                                        lexicon[q.first].term_count(),
                                         freqs.doc_length,
                                         _coll_len,
                                         _mu);
 
             // Score document fields
             for (const std::string &field_str : _fields) {
-                int field_id = index.field(field_str);
+                int field_id = field_id_map[field_str];
                 if (field_id < 1) {
                     // field is not indexed
                     continue;
@@ -52,7 +50,7 @@ class doc_lm_dir_feature : public doc_feature {
 
                 double field_score =
                     _calculate_lm(freqs.f_ft.at(std::make_pair(field_id, q.first)),
-                                  index.fieldTermCount(field_str, index.term(q.first)),
+                                  lexicon[q.first].field_term_count(field_id),
                                   freqs.field_len[field_id],
                                   _coll_len,
                                   _mu);
