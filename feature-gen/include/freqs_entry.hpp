@@ -33,6 +33,8 @@ struct FreqsEntry {
 
     std::vector<uint64_t> term_list;
 
+    std::map<uint64_t, std::vector<uint64_t>> positions;
+
     // within document frequency
     std::map<uint64_t, uint32_t> d_ft;
 
@@ -53,6 +55,7 @@ struct FreqsEntry {
         archive(url_stats,
                 fields_stats,
                 term_list,
+                positions,
                 d_ft,
                 doc_length,
                 pagerank,

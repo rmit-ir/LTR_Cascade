@@ -10,9 +10,10 @@
 
 #include "indri/Index.hpp"
 
-using indri_index = indri::index::Index;
+#include "lexicon.hpp"
 
 namespace {
+using indri_index = indri::index::Index;
 
 static const std::string              _field_title = "title";
 static const std::vector<std::string> _fields = {"body", _field_title, "heading", "inlink", "a"};
@@ -41,8 +42,8 @@ std::map<uint64_t, uint32_t> calculate_q_freqs(indri_index &             index,
  */
 class doc_feature {
    public:
+    Lexicon     &lexicon;
 
-    indri_index &index;
     uint64_t     _coll_len    = 0;
     uint64_t     _num_docs    = 0;
     double       _avg_doc_len = 0.0;
@@ -56,22 +57,10 @@ class doc_feature {
     // FIXME: implement url score
     double _score_url = 0.0;
 
-    doc_feature(indri_index &idx) : index(idx) {
-        _coll_len    = index.termCount();
-        _num_docs    = index.documentCount();
+    doc_feature(Lexicon &lex) : lexicon(lex) {
+        _coll_len    = lexicon.term_count();
+        _num_docs    = lexicon.document_count();
         _avg_doc_len = (double)_coll_len / _num_docs;
-    }
-
-    virtual ~doc_feature() {}
-
-    inline void _score_reset() {
-        _score_doc     = 0.0;
-        _score_body    = 0.0;
-        _score_title   = 0.0;
-        _score_heading = 0.0;
-        _score_inlink  = 0.0;
-        _score_a       = 0.0;
-        _score_url     = 0.0;
     }
 
     void _accumulate_score(std::string key, double val) {

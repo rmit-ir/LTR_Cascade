@@ -1,11 +1,5 @@
 #pragma once
 class doc_be_feature : public doc_feature {
-  // Doc body
-  double score_be = 0;
-  // Various tags scores
-  double score_be_title = 0;
-  double score_be_heading = 0;
-  double score_be_inlink = 0;
 
   double _calculate_be(uint32_t d_f, uint64_t c_f, uint32_t dlen) {
     double l, r, prime, rsv;
@@ -19,12 +13,9 @@ class doc_be_feature : public doc_feature {
   }
 
 public:
-  doc_be_feature(indri_index &idx) : doc_feature(idx) {}
+  doc_be_feature(Lexicon &lex) : doc_feature(lex) {}
 
-  void compute(doc_entry &doc, FreqsEntry &freqs) {
-
-    _score_reset();
-
+  void compute(doc_entry &doc, FreqsEntry &freqs, FieldIdMap &field_id_map) {
     for (auto &q : freqs.q_ft) {
       // skip non-existent terms
       if (q.first == 0) {
@@ -36,12 +27,12 @@ public:
       }
 
       _score_doc +=
-          _calculate_be(freqs.d_ft.at(q.first), index.termCount(index.term(q.first)),
+          _calculate_be(freqs.d_ft.at(q.first), lexicon[q.first].term_count(),
                         freqs.doc_length);
 
       // Score document fields
       for (const std::string &field_str : _fields) {
-        int field_id = index.field(field_str);
+        int field_id = field_id_map[field_str];
         if (field_id < 1) {
           // field is not indexed
           continue;
@@ -54,8 +45,7 @@ public:
           continue;
         }
 
-        int field_term_cnt =
-            index.fieldTermCount(field_str, index.term(q.first));
+        int field_term_cnt = lexicon[q.first].field_term_count(field_id);
         if (0 == field_term_cnt) {
           continue;
         }

@@ -6,12 +6,9 @@ class doc_prob_feature : public doc_feature {
     double _calculate_prob(double d_f, double dlen) { return (double)d_f / dlen; }
 
    public:
-    doc_prob_feature(indri_index &idx) : doc_feature(idx) {}
+    doc_prob_feature(Lexicon &lex) : doc_feature(lex) {}
 
-    void compute(doc_entry &doc, FreqsEntry &freqs) {
-
-        _score_reset();
-
+    void compute(doc_entry &doc, FreqsEntry &freqs, FieldIdMap &field_id_map) {
         for (auto &q : freqs.q_ft) {
             // skip non-existent terms
             if (q.first == 0) {
@@ -26,7 +23,7 @@ class doc_prob_feature : public doc_feature {
 
             // Score document fields
             for (const std::string &field_str : _fields) {
-                int field_id = index.field(field_str);
+                int field_id = field_id_map[field_str];
                 if (field_id < 1) {
                     // field is not indexed
                     continue;

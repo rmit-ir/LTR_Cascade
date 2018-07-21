@@ -65,7 +65,6 @@ int main(int argc, char const *argv[]) {
         freqs.url_stats.url_length      = url.at(0).size();
 
         for (auto &tid : doc_terms) {
-
             freqs.term_list.push_back(tid);
 
             auto it = freqs.d_ft.find(tid);
@@ -73,6 +72,20 @@ int main(int argc, char const *argv[]) {
                 freqs.d_ft[tid] = 1;
             }
             ++it->second;
+
+            if (tid > 0 and freqs.d_ft[tid] == 1) {
+                auto *docListIter = index->docListIterator(tid);
+                docListIter->startIteration();
+                docListIter->nextEntry(docid);
+                if (!docListIter) {
+                    continue;
+                }
+                auto doc_data = docListIter->currentEntry();
+                if (doc_data && doc_data->document == docid) {
+                    std::for_each(doc_data->positions.begin(), doc_data->positions.end(), [&](const uint64_t &p){ freqs.positions[tid].push_back(p); });
+                }
+                delete docListIter;
+            }
         }
 
         freqs.doc_length = doc_terms.size();
@@ -130,6 +143,7 @@ int main(int argc, char const *argv[]) {
         priorIt->nextEntry();
         ++docid;
     }
+    delete iter;
     archive(fwd_idx);
     return 0;
 }

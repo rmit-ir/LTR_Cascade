@@ -26,5 +26,4 @@
 
 #include "tpscore/doc_tpscore_feature.hpp"
 
-#include "doc_feature/docmeta_url_feature.hpp"
 #include "doc_feature/document_features.hpp"

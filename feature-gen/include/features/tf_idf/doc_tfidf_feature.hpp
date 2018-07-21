@@ -9,12 +9,9 @@ class doc_tfidf_feature : public doc_feature {
     }
 
    public:
-    doc_tfidf_feature(indri_index &idx) : doc_feature(idx) {}
+    doc_tfidf_feature(Lexicon &lex) : doc_feature(lex) {}
 
-    void compute(doc_entry &doc, FreqsEntry &freqs) {
-
-        _score_reset();
-
+    void compute(doc_entry &doc, FreqsEntry &freqs, FieldIdMap &field_id_map) {
         for (auto &q : freqs.q_ft) {
             // skip non-existent terms
             if (q.first == 0) {
@@ -26,11 +23,11 @@ class doc_tfidf_feature : public doc_feature {
             }
 
             _score_doc += _calculate_tfidf(
-                freqs.d_ft.at(q.first), index.termCount(index.term(q.first)), freqs.doc_length);
+                freqs.d_ft.at(q.first), lexicon[q.first].term_count(), freqs.doc_length);
 
             // Score document title, heading, inlink fields
             for (const std::string &field_str : _fields) {
-                int field_id = index.field(field_str);
+                int field_id = field_id_map[field_str];
                 if (field_id < 1) {
                     // field is not indexed
                     continue;
@@ -43,7 +40,7 @@ class doc_tfidf_feature : public doc_feature {
                     continue;
                 }
 
-                int field_term_cnt = index.fieldTermCount(field_str, index.term(q.first));
+                int field_term_cnt = lexicon[q.first].field_term_count(field_id);
                 if (0 == field_term_cnt) {
                     continue;
                 }
