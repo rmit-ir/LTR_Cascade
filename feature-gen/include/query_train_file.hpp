@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "lexicon.hpp"
 #include "query_environment_adapter.hpp"
 
 struct query_train {
@@ -32,13 +33,13 @@ class query_train_file {
     std::vector<query_train>   rows;
     std::ifstream &            ifs;
     query_environment_adapter &env;
-    indri::index::Index *      index = nullptr;
+    Lexicon &lexicon;
 
    public:
     query_train_file(std::ifstream &            infile,
                      query_environment_adapter &qry_adapter,
-                     indri::index::Index *      idx)
-        : ifs(infile), env(qry_adapter), index(idx) {}
+                     Lexicon &lex)
+        : ifs(infile), env(qry_adapter), lexicon(lex) {}
 
     /**
      * Parse requests from file format.
@@ -67,8 +68,7 @@ class query_train_file {
             iss.str(parts[1]);
             while (iss >> str) {
                 std::string stem = env.stem_term(str);
-                uint64_t    term_id =
-                    index->term(stem); // `Index::term` takes stemmed version of a term
+                uint64_t    term_id = lexicon.term(stem); // `Index::term` takes stemmed version of a term
                 row.terms.push_back(str);
                 row.stems.push_back(stem);
                 row.tids.push_back(term_id);

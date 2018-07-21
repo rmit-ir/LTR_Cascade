@@ -14,11 +14,8 @@
 #include "indri/CompressedCollection.hpp"
 #include "indri/Repository.hpp"
 
-static void display_usage(char *name) {
-    std::cerr << "usage: " << name << " <query file> <unigram file> <bigram file>"
-              << " <indri repository>" << std::endl;
-    exit(EXIT_FAILURE);
-}
+#include "CLI/CLI.hpp"
+#include "cereal/archives/binary.hpp"
 
 char *stdstr_to_cstr(const std::string &s) {
     char *cstr = new char[s.size() + 1];
@@ -28,14 +25,19 @@ char *stdstr_to_cstr(const std::string &s) {
 }
 
 int main(int argc, char **argv) {
-    if (argc < 5) {
-        display_usage(argv[0]);
-    }
+    std::string query_file;
+    std::string unigram_file;
+    std::string bigram_file;
+    std::string repo_path;
+    std::string lexicon_file;
 
-    std::string query_file   = argv[1];
-    std::string unigram_file = argv[2];
-    std::string bigram_file  = argv[3];
-    std::string repo_path    = argv[4];
+    CLI::App app{"Merge unigram and bigram features."};
+    app.add_option("query_file", query_file, "Query file")->required();
+    app.add_option("unigram_file", unigram_file, "Unigram file")->required();
+    app.add_option("bigram_file", bigram_file, "Bigram File")->required();
+    app.add_option("repo_path", repo_path, "Indri repo path")->required();
+    app.add_option("lexicon_file", lexicon_file, "Lexicon file")->required();
+    CLI11_PARSE(app, argc, argv);
 
     query_environment         indri_env;
     query_environment_adapter qry_env(&indri_env);
@@ -43,9 +45,11 @@ int main(int argc, char **argv) {
     // set Indri repository
     qry_env.add_index(repo_path);
 
-    indri::collection::Repository repo;
-    repo.openRead(repo_path);
-    auto index = (*repo.indexes())[0];
+        // load lexicon
+    std::ifstream              lexicon_f(lexicon_file);
+    cereal::BinaryInputArchive iarchive_lex(lexicon_f);
+    Lexicon                    lexicon;
+    iarchive_lex(lexicon);
 
     // load query file
     std::ifstream ifs(query_file);
@@ -53,13 +57,13 @@ int main(int argc, char **argv) {
         std::cerr << "Could not open file: " << query_file << std::endl;
         exit(EXIT_FAILURE);
     }
-    query_train_file qtfile(ifs, qry_env, index);
+    query_train_file qtfile(ifs, qry_env, lexicon);
     qtfile.parse();
     ifs.close();
     ifs.clear();
 
     // init static features
-    query_features_init(qry_env.document_count(), qry_env.term_count());
+    query_features_init(lexicon.document_count(), lexicon.term_count());
 
     // load unigram features
     std::cerr << "loading unigram features...";

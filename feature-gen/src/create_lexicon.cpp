@@ -34,14 +34,14 @@ int main(int argc, char const *argv[]) {
         indri::index::TermData *    termData = entry->termData;
 
 
-        Term::FieldCounts field_counts;
+        FieldCounts field_counts;
         for (const std::string &field_str : _fields) {
             int field_id = index-> field(field_str);
             Counts c(termData->fields[field_id - 1].documentCount, termData->fields[field_id - 1].totalCount);
             field_counts.insert(std::make_pair(field_id, c));
         }
-        Term t(termData->term, Counts(termData->corpus.documentCount, termData->corpus.totalCount), field_counts);
-        lexicon.push_back(t);
+        Counts counts(termData->corpus.documentCount, termData->corpus.totalCount);
+        lexicon.push_back(termData->term, counts, field_counts);
         iter->nextEntry();
     }
     delete iter;

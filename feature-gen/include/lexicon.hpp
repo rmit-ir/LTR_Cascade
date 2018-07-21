@@ -3,6 +3,7 @@
 #include "cereal/types/map.hpp"
 #include "cereal/types/string.hpp"
 #include "cereal/types/vector.hpp"
+#include "cereal/types/map.hpp"
 
 #include <map>
 
@@ -18,20 +19,17 @@ struct Counts {
         archive(document_count, term_count);
     }
 };
+using FieldCounts = std::map<uint64_t, Counts>;
 
 class Term {
-   public:
-    using FieldCounts = std::map<uint64_t, Counts>;
-
    private:
-    std::string term;
     Counts      counts;
     FieldCounts field_counts;
 
    public:
     Term() = default;
 
-    Term(std::string t, Counts c, FieldCounts fc) : term(t), counts(c), field_counts(fc){};
+    Term(const Counts &c, const FieldCounts &fc) : counts(c), field_counts(fc){};
 
     inline uint64_t document_count() const { return counts.document_count; }
 
@@ -55,7 +53,7 @@ class Term {
 
     template <class Archive>
     void serialize(Archive &archive) {
-        archive(term, counts, field_counts);
+        archive(counts, field_counts);
     }
 };
 
@@ -68,18 +66,35 @@ class Lexicon {
     inline const Term &operator[](size_t pos) const { return terms[pos]; }
     inline Term &      operator[](size_t pos) { return terms[pos]; }
 
-    void push_back(const Term &t) { terms.push_back(t); }
-    void push_back(Term &&t) { terms.push_back(t); }
+    inline size_t term(const std::string& t) {
+        auto it = term_id.find(t);
+        if(it != term_id.end()){
+            return it->second;
+        }
+        return -1;
+    }
+
+    void push_back(const std::string &t, const Counts &c, const FieldCounts &fc) {
+        auto id = terms.size();
+        term_id.insert(std::make_pair(t, id));
+        Term term(c, fc);
+        terms.push_back(term);
+    }
+
+    void push_back(Term &&t) {
+        terms.push_back(t);
+    }
 
     Lexicon() = default;
     Lexicon(Counts c) : counts(c) {}
 
     template <class Archive>
     void serialize(Archive &archive) {
-        archive(counts, terms);
+        archive(counts, terms, term_id);
     }
 
    private:
     Counts            counts;
     std::vector<Term> terms;
+    std::map<std::string, size_t> term_id;
 };
