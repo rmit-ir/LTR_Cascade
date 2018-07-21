@@ -48,23 +48,6 @@ int main(int argc, char **argv) {
     repo.openRead(repo_path);
     auto index = (*repo.indexes())[0];
 
-    // load query file
-    std::ifstream ifs(query_file);
-    if (!ifs.is_open()) {
-        std::cerr << "Could not open file: " << query_file << std::endl;
-        exit(EXIT_FAILURE);
-    }
-    query_train_file qtfile(ifs, qry_env, index);
-    qtfile.parse();
-    ifs.close();
-    ifs.clear();
-
-    // load trec run file
-    ifs.open(trec_file);
-    trec_run_file trec_run(ifs);
-    trec_run.parse();
-    ifs.close();
-    ifs.clear();
 
     using clock = std::chrono::high_resolution_clock;
     auto start  = clock::now();
@@ -90,6 +73,24 @@ int main(int argc, char **argv) {
     stop      = clock::now();
     load_time = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
     std::cerr << "Loaded " << lexicon_file << " in " << load_time.count() << " ms" << std::endl;
+
+    // load query file
+    std::ifstream ifs(query_file);
+    if (!ifs.is_open()) {
+        std::cerr << "Could not open file: " << query_file << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    query_train_file qtfile(ifs, qry_env, lexicon);
+    qtfile.parse();
+    ifs.close();
+    ifs.clear();
+
+    // load trec run file
+    ifs.open(trec_file);
+    trec_run_file trec_run(ifs);
+    trec_run.parse();
+    ifs.close();
+    ifs.clear();
 
     FieldIdMap                     field_id_map;
     const std::vector<std::string> idx_fields = {
