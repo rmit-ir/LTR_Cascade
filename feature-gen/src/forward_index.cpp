@@ -48,7 +48,7 @@ int main(int argc, char const *argv[]) {
     indri::api::QueryEnvironment indri_env;
     indri_env.addIndex(repository_name);
 
-    FwdIdx fwd_idx;
+    ForwardIndex fwd_idx;
     fwd_idx.push_back({});
     uint64_t                            docid = index->documentBase();
     indri::index::TermListFileIterator *iter  = index->termListFileIterator();

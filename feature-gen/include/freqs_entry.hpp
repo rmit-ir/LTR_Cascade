@@ -67,4 +67,4 @@ struct FreqsEntry {
     }
 };
 
-using FwdIdx = std::vector<FreqsEntry>;
+using ForwardIndex = std::vector<FreqsEntry>;
