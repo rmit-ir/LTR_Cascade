@@ -3,7 +3,7 @@
 class doc_stream_feature {
    public:
 
-    void compute(doc_entry &doc, FreqsEntry &freqs, FieldIdMap &field_id_map) {
+    void compute(query_train &qry, doc_entry &doc, FreqsEntry &freqs, FieldIdMap &field_id_map) {
         // stream length is set for the score member variables
         doc.stream_len       = freqs.doc_length;
         doc.stream_len_body  = freqs.field_len[field_id_map["body"]];
@@ -23,7 +23,7 @@ class doc_stream_feature {
         double inlink_tf  = 0;
         double a_tf       = 0;
 
-        for (auto &q : freqs.q_ft) {
+        for (auto &q : qry.q_ft) {
             doc_tf += freqs.d_ft[q.first];
             body_tf += freqs.f_ft[{field_id_map["body"], q.first}];
             title_tf += freqs.f_ft[{field_id_map["title"], q.first}];

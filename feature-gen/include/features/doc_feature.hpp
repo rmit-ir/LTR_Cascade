@@ -10,32 +10,14 @@
 
 #include "indri/Index.hpp"
 
+#include "query_train_file.hpp"
 #include "lexicon.hpp"
 
 namespace {
-using indri_index = indri::index::Index;
-
-static const std::string              _field_title = "title";
-static const std::vector<std::string> _fields = {"body", _field_title, "heading", "inlink", "a"};
-
-std::map<uint64_t, uint32_t> calculate_q_freqs(indri_index &             index,
-                                               std::vector<std::string> &query_stems) {
-
-    std::map<uint64_t, uint32_t> q_ft;
-
-    for (auto &s : query_stems) {
-        auto tid = index.term(s);
-
-        auto it = q_ft.find(tid);
-        if (it == q_ft.end()) {
-            q_ft[tid] = 1;
-        } else {
-            ++it->second;
-        }
-    }
-    return q_ft;
-}
+    static const std::string              _field_title = "title";
+    static const std::vector<std::string> _fields = {"body", _field_title, "heading", "inlink", "a"};
 } // namespace
+
 
 /**
  * Score segments of a document with a given query.

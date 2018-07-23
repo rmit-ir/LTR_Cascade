@@ -19,8 +19,8 @@ class doc_dfr_feature : public doc_feature {
 public:
   doc_dfr_feature(Lexicon &lex) : doc_feature(lex) {}
 
-  void compute(doc_entry &doc, FreqsEntry &freqs, FieldIdMap &field_id_map) {
-    for (auto &q : freqs.q_ft) {
+  void compute(query_train &qry, doc_entry &doc, FreqsEntry &freqs, FieldIdMap &field_id_map) {
+    for (auto &q : qry.q_ft) {
       // skip non-existent terms
       if (q.first == 0) {
         continue;

@@ -12,7 +12,7 @@
 #include "field_id.hpp"
 
 #include "features/features.hpp"
-#include "freqs_entry.hpp"
+#include "forward_index.hpp"
 
 #include "lexicon.hpp"
 
@@ -132,7 +132,6 @@ int main(int argc, char **argv) {
             auto const label = docno_labels[i];
 
             auto &freqs = fwd_idx[docid];
-            freqs.q_ft  = calculate_q_freqs(*index, qry.stems);
 
             doc_entry doc_entry(docid, freqs.pagerank);
 
@@ -143,21 +142,21 @@ int main(int argc, char **argv) {
             // set original run score as a feature for training
             doc_entry.stage0_score = stage0_scores[i];
 
-            f_bm25_atire.compute(doc_entry, freqs, field_id_map);
-            f_bm25_trec3.compute(doc_entry, freqs, field_id_map);
-            f_bm25_trec3_kmax.compute(doc_entry, freqs, field_id_map);
-            f_lmds_2500.compute(doc_entry, freqs, field_id_map);
-            f_lmds_1500.compute(doc_entry, freqs, field_id_map);
-            f_lmds_1000.compute(doc_entry, freqs, field_id_map);
-            tfidf_feature.compute(doc_entry, freqs, field_id_map);
-            prob_feature.compute(doc_entry, freqs, field_id_map);
-            be_feature.compute(doc_entry, freqs, field_id_map);
-            dph_feature.compute(doc_entry, freqs, field_id_map);
-            dfr_feature.compute(doc_entry, freqs, field_id_map);
-            f_stream.compute(doc_entry, freqs, field_id_map);
-            features.compute(doc_entry, freqs, field_id_map);
+            f_bm25_atire.compute(qry, doc_entry, freqs, field_id_map);
+            f_bm25_trec3.compute(qry, doc_entry, freqs, field_id_map);
+            f_bm25_trec3_kmax.compute(qry, doc_entry, freqs, field_id_map);
+            f_lmds_2500.compute(qry, doc_entry, freqs, field_id_map);
+            f_lmds_1500.compute(qry, doc_entry, freqs, field_id_map);
+            f_lmds_1000.compute(qry, doc_entry, freqs, field_id_map);
+            tfidf_feature.compute(qry, doc_entry, freqs, field_id_map);
+            prob_feature.compute(qry, doc_entry, freqs, field_id_map);
+            be_feature.compute(qry, doc_entry, freqs, field_id_map);
+            dph_feature.compute(qry, doc_entry, freqs, field_id_map);
+            dfr_feature.compute(qry, doc_entry, freqs, field_id_map);
+            f_stream.compute(qry, doc_entry, freqs, field_id_map);
+            features.compute(qry, doc_entry, freqs, field_id_map);
             prox_feature.compute(doc_entry, qry, freqs);
-            f_tpscore.compute(doc_entry, freqs, field_id_map);
+            f_tpscore.compute(qry, doc_entry, freqs, field_id_map);
 
             outfile << label << "," << qry.id << "," << docno << doc_entry << std::endl;
         }

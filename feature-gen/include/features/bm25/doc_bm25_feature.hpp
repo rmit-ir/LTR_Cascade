@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-#include "freqs_entry.hpp"
+#include "forward_index.hpp"
 #include "lexicon.hpp"
 #include "field_id.hpp"
 
@@ -39,8 +39,8 @@ class doc_bm25_feature : public doc_feature {
         ranker.avg_doc_len = _avg_doc_len;
     }
 
-    void bm25_compute(doc_entry &doc, FreqsEntry &freqs, FieldIdMap &field_id_map) {
-        for (auto &q : freqs.q_ft) {
+    void bm25_compute(query_train &qry, doc_entry &doc, FreqsEntry &freqs, FieldIdMap &field_id_map) {
+        for (auto &q : qry.q_ft) {
 
             // skip non-existent terms
             if (q.first == 0) {

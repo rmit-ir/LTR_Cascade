@@ -37,7 +37,7 @@ class document_features {
 
 public:
 
-  void compute(doc_entry &doc, FreqsEntry &freqs, FieldIdMap &field_id_map) {
+  void compute(query_train &qry, doc_entry &doc, FreqsEntry &freqs, FieldIdMap &field_id_map) {
 
     /*
      * List of fields for the current document. The field `id` indicates which
@@ -61,7 +61,7 @@ public:
       }
 
       size_t qry_term_count = 0;
-      for (auto &q : freqs.q_ft) {
+      for (auto &q : qry.q_ft) {
         qry_term_count += freqs.f_ft[{field_id, q.first}];
       }
 

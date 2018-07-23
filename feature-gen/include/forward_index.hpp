@@ -7,9 +7,6 @@
 
 struct FreqsEntry {
 
-    // within query frequency
-    std::map<uint64_t, uint32_t> q_ft;
-
     struct UrlStats {
         size_t url_slash_count = 0;
         size_t url_length      = 0;
