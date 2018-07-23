@@ -3,7 +3,7 @@
 #include "indri/Repository.hpp"
 
 #include "cereal/archives/binary.hpp"
-#include "freqs_entry.hpp"
+#include "forward_index.hpp"
 
 size_t url_slash_count(const std::string &url) {
     size_t            count       = 0;
@@ -124,10 +124,7 @@ int main(int argc, char const *argv[]) {
                 freqs.field_len_sum_sqrs[field_str] +=
                     freqs.field_len[field_id] * freqs.field_len[field_id];
 
-                // Possible BUG
-                // Should I count for all the fields or for a single one and then aggregate?
                 for (size_t i = f.begin; i < f.end; ++i) {
-                    // stc:: cerr << doc_terms[1] << " " << std::endl;
                     auto field_term = std::make_pair(field_id, doc_terms[i]);
                     auto it         = freqs.f_ft.find(field_term);
                     if (it == freqs.f_ft.end()) {

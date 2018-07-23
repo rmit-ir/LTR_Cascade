@@ -16,8 +16,8 @@ class doc_lm_dir_feature : public doc_feature {
    public:
     doc_lm_dir_feature(Lexicon &lex) : doc_feature(lex) {}
 
-    void lm_dir_compute(doc_entry &doc, FreqsEntry &freqs, FieldIdMap &field_id_map) {
-        for (auto &q : freqs.q_ft) {
+    void lm_dir_compute(query_train &qry, doc_entry &doc, FreqsEntry &freqs, FieldIdMap &field_id_map) {
+        for (auto &q : qry.q_ft) {
             // skip non-existent terms
             if (q.first == 0) {
                 continue;

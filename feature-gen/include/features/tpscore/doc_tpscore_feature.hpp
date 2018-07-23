@@ -84,17 +84,17 @@ class doc_tpscore_feature : public doc_bm25_feature {
         ranker_bctp.avg_doc_len = _avg_doc_len;
     }
 
-    void compute(doc_entry &doc, FreqsEntry &freqs, FieldIdMap &field_id_map) {
+    void compute(query_train &qry, doc_entry &doc, FreqsEntry &freqs, FieldIdMap &field_id_map) {
         auto bm25_atire = doc.bm25_atire;
         if(bm25_atire == 0) {
             ranker.set_k1(90);
             ranker.set_b(40);
-            bm25_compute(doc, freqs, field_id_map);
+            bm25_compute(qry, doc, freqs, field_id_map);
             bm25_atire = _score_doc;
         }
 
         std::vector<bctp_term> bctp_query;
-        for (auto &q : freqs.q_ft) {
+        for (auto &q : qry.q_ft) {
             bctp_term t;
             t.id        = q.first;
             t.doc_count = lexicon[q.first].document_count();
