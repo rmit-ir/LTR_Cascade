@@ -1,9 +1,11 @@
-#include "futils.hpp"
 #include "indri/DocListIterator.hpp"
 #include "indri/Index.hpp"
 #include "indri/QueryEnvironment.hpp"
 #include "indri/Repository.hpp"
-#include "w_scanner.h"
+#include "w_scanner.hpp"
+#include "query_train_file.hpp"
+#include "cereal/archives/binary.hpp"
+
 #include <iostream>
 #include <tuple>
 #include <unistd.h>
@@ -29,16 +31,12 @@ struct bigram {
 int main(int argc, char *argv[]) {
     int   opt;
     char *qfname; //!< query fname
+    char *lexicon_file;
     char *idx_path; //!< indri index
-    char *suffix; //!< outfile suffix
     int   w_size     = -1; //!< window size
-    bool  is_ordered = false; //!< ordered or not, by default u
-    bool  is_overlap = true; //!< overlap or not
-    //!< turn on indri-like counter,
-    //!< but still in a slightly different way of counting ow.
-    bool indri_like = false;
-    //
-    while ((opt = getopt(argc, argv, "i:q:w:uovgs:")) != -1) {
+    std::string outfname;
+
+    while ((opt = getopt(argc, argv, "i:q:l:w:o:vg:")) != -1) {
         switch (opt) {
         case 'q':
             if (!optarg) {
@@ -54,31 +52,22 @@ int main(int argc, char *argv[]) {
             }
             idx_path = optarg;
             break;
+        case 'l':
+            if (!optarg) {
+                std::cerr << "Need lexicon. Quit." << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            lexicon_file = optarg;
+            break;
+        case 'o':
+            outfname = optarg;
+            break;
         case 'w':
             if (!optarg) {
                 std::cerr << "Missing window size, set to default" << std::endl;
             } else {
                 w_size = atoi(optarg);
             }
-            break;
-        case 'u':
-            is_ordered = false;
-            break;
-        case 'o':
-            is_ordered = true;
-            break;
-        case 'v':
-            is_overlap = true;
-            break;
-        case 'g':
-            indri_like = true;
-            break;
-        case 's':
-            if (!optarg) {
-                std::cerr << "Missing suffix. Quit." << std::endl;
-                exit(EXIT_FAILURE);
-            }
-            suffix = optarg;
             break;
         default:
             std::cerr << "Usage: -i <idx_path> -q <qry_file> -w <size>"
@@ -100,19 +89,32 @@ int main(int argc, char *argv[]) {
     QueryEnvironment indri_env;
     indri_env.addIndex(idx_path);
     //!< init scanner
-    WScanner w_scanner = WScanner(w_size, indri_like, is_ordered, is_overlap);
+    WScanner w_scanner = WScanner(w_size);
     //!< prepare the output file
-    std::string outfname = "";
-    if (is_ordered)
-        outfname += "o";
-    else
-        outfname += "u";
-    outfname += std::to_string(w_scanner.w_size());
-    outfname += suffix;
-    outfname += ".txt";
+
     std::ofstream fout(outfname.c_str());
+
+
+    // load lexicon
+    std::ifstream              lexicon_f(lexicon_file);
+    cereal::BinaryInputArchive iarchive_lex(lexicon_f);
+    Lexicon                    lexicon;
+    iarchive_lex(lexicon);
+
     //!< load query set
-    std::vector<std::vector<std::string>> qry_set = FUtils::get_tokens(qfname, ",");
+    // load query file
+    std::ifstream ifs(qfname);
+    if (!ifs.is_open()) {
+        std::cerr << "Could not open file: " << qfname << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    query_train_file qtfile(ifs, lexicon);
+    ifs.close();
+    std::vector<std::vector<std::string>> qry_set;
+    auto queries = qtfile.get_queries();
+    for (auto &qry : queries) {
+        qry_set.push_back(qry.stems);
+    }
 
     // bigrams already done
     std::map<bigram, bool> bigram_seen;
@@ -136,29 +138,20 @@ int main(int argc, char *argv[]) {
                 }
             }
 
-            std::cerr << "query: ";
-            for (auto &s : curr_qry) {
-                std::cerr << s << " ";
-            }
-            std::cerr << std::endl << "bigrams: " << qry_bigrams.size() << std::endl;
-
             for (auto &curr_bigram : qry_bigrams) {
                 bigram term_bigram(curr_idx->term(curr_bigram.first),
                                    curr_idx->term(curr_bigram.second));
 
                 std::map<bigram, bool>::iterator found;
-                if (is_ordered) {
-                    found = bigram_seen.find(term_bigram);
-                } else {
-                    found = std::find_if(bigram_seen.begin(),
-                                         bigram_seen.end(),
-                                         [&](const std::pair<bigram, bool> &el) {
-                                             return (el.first.term_a == term_bigram.term_a &&
-                                                     el.first.term_b == term_bigram.term_b) ||
-                                                    (el.first.term_a == term_bigram.term_b &&
-                                                     el.first.term_b == term_bigram.term_a);
-                                         });
-                }
+
+                found = std::find_if(bigram_seen.begin(),
+                                     bigram_seen.end(),
+                                     [&](const std::pair<bigram, bool> &el) {
+                                         return (el.first.term_a == term_bigram.term_a &&
+                                                 el.first.term_b == term_bigram.term_b) ||
+                                                (el.first.term_a == term_bigram.term_b &&
+                                                 el.first.term_b == term_bigram.term_a);
+                                     });
 
                 if (found == bigram_seen.end()) {
                     std::vector<indri::index::DocListIterator *> doc_iters(2);
@@ -212,9 +205,6 @@ int main(int argc, char *argv[]) {
                         true));
                     delete doc_iters[0];
                     delete doc_iters[1];
-                } else {
-                    std::cerr << "already processed (" << curr_bigram.first << ", "
-                              << curr_bigram.second << ")" << std::endl;
                 }
             }
         }
@@ -238,7 +228,6 @@ std::vector<std::string> uniq_terms(const std::vector<std::string> &qry,
     for (size_t i = 0; i < qry.size(); ++i) {
         std::string curr_token = qry_env.stemTerm(qry[i]);
         if (uniq_terms.empty() || uniq_terms.find(curr_token) == uniq_terms.end()) {
-            //            std::cout<<curr_token<<std::endl;
             qry_tokens.push_back(curr_token);
             uniq_terms.insert(curr_token);
         }

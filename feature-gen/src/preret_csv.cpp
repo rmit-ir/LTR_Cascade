@@ -11,9 +11,6 @@
 #include "fgen_term_qry.h"
 #include "query_features.h"
 
-#include "indri/CompressedCollection.hpp"
-#include "indri/Repository.hpp"
-
 #include "CLI/CLI.hpp"
 #include "cereal/archives/binary.hpp"
 #include "query_environment_adapter.hpp"
@@ -29,22 +26,14 @@ int main(int argc, char **argv) {
     std::string query_file;
     std::string unigram_file;
     std::string bigram_file;
-    std::string repo_path;
     std::string lexicon_file;
 
     CLI::App app{"Merge unigram and bigram features."};
     app.add_option("query_file", query_file, "Query file")->required();
     app.add_option("unigram_file", unigram_file, "Unigram file")->required();
     app.add_option("bigram_file", bigram_file, "Bigram File")->required();
-    app.add_option("repo_path", repo_path, "Indri repo path")->required();
     app.add_option("lexicon_file", lexicon_file, "Lexicon file")->required();
     CLI11_PARSE(app, argc, argv);
-
-    query_environment         indri_env;
-    query_environment_adapter qry_env(&indri_env);
-
-    // set Indri repository
-    qry_env.add_index(repo_path);
 
         // load lexicon
     std::ifstream              lexicon_f(lexicon_file);
