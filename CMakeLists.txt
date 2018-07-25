@@ -32,17 +32,24 @@ set(WANDBL_INCLUDE_DIR ${CMAKE_HOME_DIRECTORY}/external/WANDbl/include)
 
 set(CEREAL_INCLUDE_DIR ${CMAKE_HOME_DIRECTORY}/external/cereal/include)
 
-include_directories(${INDRI_INCLUDE_DIR} ${WANDBL_INCLUDE_DIR} ${CEREAL_INCLUDE_DIR} feature-gen/include)
+set(CLI11_INCLUDE_DIR ${CMAKE_HOME_DIRECTORY}/external/CLI11/include)
+
+include_directories(${INDRI_INCLUDE_DIR} ${WANDBL_INCLUDE_DIR} ${CEREAL_INCLUDE_DIR} ${CLI11_INCLUDE_DIR}  feature-gen/include)
 
 # forward_index
-add_executable(forward_index feature-gen/src/forward_index.cpp)
-add_dependencies(forward_index indri_proj)
-target_link_libraries(forward_index indri pthread z)
+add_executable(create_forward_index feature-gen/src/create_forward_index.cpp)
+add_dependencies(create_forward_index indri_proj)
+target_link_libraries(create_forward_index indri pthread z)
 
-# forward_index
-add_executable(lexicon feature-gen/src/lexicon.cpp)
-add_dependencies(lexicon indri_proj)
-target_link_libraries(lexicon indri pthread z)
+# lexicon
+add_executable(create_lexicon feature-gen/src/create_lexicon.cpp)
+add_dependencies(create_lexicon indri_proj)
+target_link_libraries(create_lexicon indri pthread z)
+
+# inverted_index
+add_executable(create_inverted_index feature-gen/src/create_inverted_index.cpp)
+add_dependencies(create_inverted_index indri_proj)
+target_link_libraries(create_inverted_index indri pthread z)
 
 # dump_indri
 add_executable(dump_indri feature-gen/src/dump_indri.cpp)
@@ -50,18 +57,17 @@ add_dependencies(dump_indri indri_proj)
 target_link_libraries(dump_indri indri pthread z)
 
 # dump_bigram
-add_executable(dump_bigram feature-gen/src/dump_bigram.cpp
-    feature-gen/src/w_scanner.cpp)
+add_executable(dump_bigram feature-gen/src/dump_bigram.cpp)
 add_dependencies(dump_bigram indri_proj)
 target_link_libraries(dump_bigram indri pthread z)
 target_include_directories(dump_bigram PUBLIC ${CMAKE_HOME_DIRECTORY}/feature-gen/src)
 
 # fgen_term
-add_executable(fgen_term feature-gen/src/fgen_term.c)
+add_executable(fgen_term feature-gen/src/fgen_term.cpp)
 target_link_libraries(fgen_term m)
 
 # fgen_bigram
-add_executable(fgen_bigram feature-gen/src/fgen_bigram.c)
+add_executable(fgen_bigram feature-gen/src/fgen_bigram.cpp)
 target_link_libraries(fgen_bigram m)
 
 # pre-retrieval csv
@@ -79,17 +85,3 @@ add_executable(fgtrain feature-gen/src/fgtrain.cpp
     feature-gen/src/strbuf.c)
 add_dependencies(fgtrain dump_bigram indri_proj)
 target_link_libraries(fgtrain indri pthread z)
-
-# FIXME bench, unigram, query score,  bigram
-
-# bench document feature
-# add_executable(bench_docfeat feature-gen/src/bench_docfeat.cpp)
-# add_dependencies(bench_docfeat indri_proj)
-# target_link_libraries(bench_docfeat indri pthread z)
-# target_include_directories(bench_docfeat PUBLIC ${CMAKE_HOME_DIRECTORY}/feature-gen/src)
-
-# bench bigram ephemeral posting
-add_executable(bench_bigram_ep feature-gen/src/bench/bench_bigram_ep.cpp feature-gen/src/w_scanner.cpp)
-add_dependencies(bench_bigram_ep indri_proj)
-target_link_libraries(bench_bigram_ep indri pthread z)
-target_include_directories(bench_bigram_ep PUBLIC ${CMAKE_HOME_DIRECTORY}/feature-gen/src)
