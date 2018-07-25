@@ -1,8 +1,8 @@
-#include "cereal/archives/binary.hpp"
 #include "CLI/CLI.hpp"
+#include "cereal/archives/binary.hpp"
 
-#include "indri/Repository.hpp"
 #include "indri/QueryEnvironment.hpp"
+#include "indri/Repository.hpp"
 
 #include "inverted_index.hpp"
 
@@ -14,7 +14,6 @@ int main(int argc, char const *argv[]) {
     app.add_option("repo_path", repo_path, "Indri repo path")->required();
     app.add_option("inverted_index_file", inverted_index_file, "Inverted index file")->required();
     CLI11_PARSE(app, argc, argv);
-
 
     std::ofstream               os(inverted_index_file, std::ios::binary);
     cereal::BinaryOutputArchive archive(os);
@@ -29,12 +28,11 @@ int main(int argc, char const *argv[]) {
     indri::index::DocListFileIterator *iter = index->docListFileIterator();
     iter->startIteration();
 
-
     while (!iter->finished()) {
-        indri::index::DocListFileIterator::DocListData *entry    = iter->currentEntry();
+        indri::index::DocListFileIterator::DocListData *entry = iter->currentEntry();
         entry->iterator->startIteration();
 
-        indri::index::TermData *                        termData = entry->termData;
+        indri::index::TermData *termData = entry->termData;
 
         PostingList pl(termData->term, termData->corpus.totalCount);
         while (!entry->iterator->finished()) {
