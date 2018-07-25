@@ -177,11 +177,6 @@ std::ostream &operator<<(std::ostream &os, const feature_t &f) {
     return os;
 }
 
-struct posting_t {
-    uint64_t docid;
-    uint32_t freq;
-    posting_t(uint64_t d, uint32_t f) : docid(d), freq(f) {}
-};
 
 std::vector<size_t> build_doclen(ForwardIndex &fwd, size_t &clen, size_t &ndocs, double &avg_dlen) {
     std::vector<size_t> dlen;
@@ -195,7 +190,7 @@ std::vector<size_t> build_doclen(ForwardIndex &fwd, size_t &clen, size_t &ndocs,
     return dlen;
 }
 
-double compute_geo_mean(const std::vector<posting_t> &posting) {
+double compute_geo_mean(const std::vector<Posting> &posting) {
     double sum = 0.0;
     for (auto &&p : posting) {
         sum += p.freq;
@@ -205,7 +200,7 @@ double compute_geo_mean(const std::vector<posting_t> &posting) {
 
 void compute_prob_stats(feature_t &                   f,
                         const std::vector<size_t> &   doclen,
-                        const std::vector<posting_t> &posting,
+                        const std::vector<Posting> &posting,
                         double *                      max) {
     uint32_t            size = posting.size();
     uint32_t            mid  = size / 2;
@@ -245,7 +240,7 @@ void compute_prob_stats(feature_t &                   f,
 
 void compute_be_stats(feature_t &                   f,
                       const std::vector<size_t> &   doclen,
-                      const std::vector<posting_t> &posting,
+                      const std::vector<Posting> &posting,
                       uint64_t                      ndocs,
                       double                        avg_dlen,
                       uint64_t                      c_f,
@@ -288,7 +283,7 @@ void compute_be_stats(feature_t &                   f,
 
 void compute_dph_stats(feature_t &                   f,
                        const std::vector<size_t> &   doclen,
-                       const std::vector<posting_t> &posting,
+                       const std::vector<Posting> &posting,
                        uint64_t                      ndocs,
                        double                        avg_dlen,
                        uint64_t                      c_f,
@@ -331,7 +326,7 @@ void compute_dph_stats(feature_t &                   f,
 
 void compute_dfr_stats(feature_t &                   f,
                        const std::vector<size_t> &   doclen,
-                       const std::vector<posting_t> &posting,
+                       const std::vector<Posting> &posting,
                        uint64_t                      ndocs,
                        double                        avg_dlen,
                        uint64_t                      c_f,
@@ -375,7 +370,7 @@ void compute_dfr_stats(feature_t &                   f,
 
 void compute_tfidf_stats(feature_t &                   f,
                          const std::vector<size_t> &   doclen,
-                         const std::vector<posting_t> &posting,
+                         const std::vector<Posting> &posting,
                          uint64_t                      ndocs,
                          double *                      max) {
     size_t              size = posting.size();
@@ -416,7 +411,7 @@ void compute_tfidf_stats(feature_t &                   f,
 
 void compute_bm25_stats(feature_t &                   f,
                         const std::vector<size_t> &   doclen,
-                        const std::vector<posting_t> &posting,
+                        const std::vector<Posting> &posting,
                         uint64_t                      ndocs,
                         double                        avg_dlen,
                         double *                      max) {
@@ -464,7 +459,7 @@ void compute_bm25_stats(feature_t &                   f,
 
 void compute_lm_stats(feature_t &                   f,
                       const std::vector<size_t> &   doclen,
-                      const std::vector<posting_t> &posting,
+                      const std::vector<Posting> &posting,
                       uint64_t                      clen,
                       uint64_t                      cf,
                       double *                      max) {
