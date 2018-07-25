@@ -10,7 +10,7 @@
 #include "lmds/doc_lm_dir_1500_feature.hpp"
 #include "lmds/doc_lm_dir_2500_feature.hpp"
 
-#include "tf_idf/doc_tfidf_feature.hpp"
+#include "tfidf/doc_tfidf_feature.hpp"
 
 #include "bose_einstein/doc_be_feature.hpp"
 
