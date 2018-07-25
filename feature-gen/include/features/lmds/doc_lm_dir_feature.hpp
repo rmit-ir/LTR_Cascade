@@ -1,17 +1,12 @@
 #pragma once
 #include "lexicon.hpp"
+#include "lm.hpp"
 
 /**
  * Language model with Dirichlet smoothing, mu set to Indri's default.
  */
 template <size_t _mu>
 class doc_lm_dir_feature : public doc_feature {
-
-    double _calculate_lm(uint32_t d_f, uint64_t c_f, uint32_t dlen, uint64_t clen, double mu) {
-        double numerator   = d_f + mu * c_f / clen;
-        double denominator = dlen + mu;
-        return (std::log(numerator / denominator));
-    }
 
    public:
     doc_lm_dir_feature(Lexicon &lex) : doc_feature(lex) {}
@@ -27,7 +22,7 @@ class doc_lm_dir_feature : public doc_feature {
                 continue;
             }
 
-            _score_doc += _calculate_lm(freqs.d_ft.at(q.first),
+            _score_doc += calculate_lm(freqs.d_ft.at(q.first),
                                         lexicon[q.first].term_count(),
                                         freqs.doc_length,
                                         _coll_len,
@@ -49,7 +44,7 @@ class doc_lm_dir_feature : public doc_feature {
                 }
 
                 double field_score =
-                    _calculate_lm(freqs.f_ft.at(std::make_pair(field_id, q.first)),
+                    calculate_lm(freqs.f_ft.at(std::make_pair(field_id, q.first)),
                                   lexicon[q.first].field_term_count(field_id),
                                   freqs.field_len[field_id],
                                   _coll_len,

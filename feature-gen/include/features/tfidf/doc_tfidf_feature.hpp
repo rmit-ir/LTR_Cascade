@@ -1,13 +1,8 @@
 #pragma once
+
+#include "tfidf.hpp"
+
 class doc_tfidf_feature : public doc_feature {
-    double _calculate_tfidf(double d_f, double t_idf, double dlen) {
-        double doc_norm = 1.0 / dlen;
-        double w_dq     = 1.0 + std::log(d_f);
-        double w_Qq     = std::log(1.0 + ((double)_num_docs / t_idf));
-
-        return (doc_norm * w_dq * w_Qq);
-    }
-
    public:
     doc_tfidf_feature(Lexicon &lex) : doc_feature(lex) {}
 
@@ -22,8 +17,8 @@ class doc_tfidf_feature : public doc_feature {
                 continue;
             }
 
-            _score_doc += _calculate_tfidf(
-                freqs.d_ft.at(q.first), lexicon[q.first].term_count(), freqs.doc_length);
+            _score_doc += calculate_tfidf(
+                freqs.d_ft.at(q.first), lexicon[q.first].term_count(), freqs.doc_length, _num_docs);
 
             // Score document title, heading, inlink fields
             for (const std::string &field_str : _fields) {
@@ -46,9 +41,9 @@ class doc_tfidf_feature : public doc_feature {
                 }
 
                 double field_score =
-                    _calculate_tfidf(freqs.f_ft.at(std::make_pair(field_id, q.first)),
+                    calculate_tfidf(freqs.f_ft.at(std::make_pair(field_id, q.first)),
                                      field_term_cnt,
-                                     freqs.field_len[field_id]);
+                                     freqs.field_len[field_id], _num_docs);
                 _accumulate_score(field_str, field_score);
             }
         }

@@ -1,20 +1,8 @@
 #pragma once
 #include "lexicon.hpp"
-/**
- * DFR: DPH
- */
+#include "dph.hpp"
+
 class doc_dph_feature : public doc_feature {
-    double _calculate_dph(uint32_t d_f, uint64_t c_f, uint32_t dlen) {
-        double l, r, prime, rsv;
-
-        l     = std::log(1.0 + (double)c_f / _num_docs);
-        r     = std::log(1.0 + (double)_num_docs / (double)c_f);
-        prime = d_f * std::log(1.0 + _avg_doc_len / (double)dlen);
-        rsv   = (l + prime * r) / (prime + 1.0);
-
-        return rsv;
-    }
-
    public:
     doc_dph_feature(Lexicon &lex) : doc_feature(lex) {}
 
@@ -29,8 +17,8 @@ class doc_dph_feature : public doc_feature {
                 continue;
             }
 
-            _score_doc += _calculate_dph(
-                freqs.d_ft.at(q.first), lexicon[q.first].term_count(), freqs.doc_length);
+            _score_doc += calculate_dph(
+                freqs.d_ft.at(q.first), lexicon[q.first].term_count(), _num_docs, _avg_doc_len, freqs.doc_length);
 
             // Score document fields
             for (const std::string &field_str : _fields) {
@@ -53,8 +41,8 @@ class doc_dph_feature : public doc_feature {
                 }
 
                 double field_score =
-                    _calculate_dph(freqs.f_ft.at(std::make_pair(field_id, q.first)),
-                                   field_term_cnt,
+                    calculate_dph(freqs.f_ft.at(std::make_pair(field_id, q.first)),
+                                   field_term_cnt, _num_docs, _avg_doc_len,
                                    freqs.field_len[field_id]);
                 _accumulate_score(field_str, field_score);
             }

@@ -1,16 +1,6 @@
 #pragma once
+#include "be.hpp"
 class doc_be_feature : public doc_feature {
-
-  double _calculate_be(uint32_t d_f, uint64_t c_f, uint32_t dlen) {
-    double l, r, prime, rsv;
-
-    l = std::log(1.0 + (double)c_f / _num_docs);
-    r = std::log(1.0 + (double)_num_docs / (double)c_f);
-    prime = d_f * std::log(1.0 + _avg_doc_len / (double)dlen);
-    rsv = (l + prime * r) / (prime + 1.0);
-
-    return rsv;
-  }
 
 public:
   doc_be_feature(Lexicon &lex) : doc_feature(lex) {}
@@ -27,7 +17,7 @@ public:
       }
 
       _score_doc +=
-          _calculate_be(freqs.d_ft.at(q.first), lexicon[q.first].term_count(),
+          calculate_be(freqs.d_ft.at(q.first), lexicon[q.first].term_count(), _num_docs, _avg_doc_len,
                         freqs.doc_length);
 
       // Score document fields
@@ -51,7 +41,7 @@ public:
         }
 
         double field_score =
-            _calculate_be(freqs.f_ft.at(std::make_pair(field_id, q.first)), field_term_cnt, freqs.field_len[field_id]);
+            calculate_be(freqs.f_ft.at(std::make_pair(field_id, q.first)), field_term_cnt, _num_docs, _avg_doc_len, freqs.field_len[field_id]);
         _accumulate_score(field_str, field_score);
       }
     }

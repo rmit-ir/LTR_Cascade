@@ -1,9 +1,8 @@
 #pragma once
-/**
- * Probability
- */
+
+#include "prob.hpp"
+
 class doc_prob_feature : public doc_feature {
-    double _calculate_prob(double d_f, double dlen) { return (double)d_f / dlen; }
 
    public:
     doc_prob_feature(Lexicon &lex) : doc_feature(lex) {}
@@ -19,7 +18,7 @@ class doc_prob_feature : public doc_feature {
                 continue;
             }
 
-            _score_doc += _calculate_prob(freqs.d_ft.at(q.first), freqs.doc_length);
+            _score_doc += calculate_prob(freqs.d_ft.at(q.first), freqs.doc_length);
 
             // Score document fields
             for (const std::string &field_str : _fields) {
@@ -36,7 +35,7 @@ class doc_prob_feature : public doc_feature {
                     continue;
                 }
 
-                double field_score = _calculate_prob(
+                double field_score = calculate_prob(
                     freqs.f_ft.at(std::make_pair(field_id, q.first)), freqs.field_len[field_id]);
                 _accumulate_score(field_str, field_score);
             }
