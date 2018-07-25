@@ -5,12 +5,11 @@
 #include "CLI/CLI.hpp"
 #include "cereal/archives/binary.hpp"
 
+#include "inverted_index.hpp"
 #include "forward_index.hpp"
 #include "fgen_term.hpp"
 
 int main(int argc, char **argv) {
-    FILE *in_file = NULL;
-
     size_t done      = 0;
     size_t freq      = 0;
     double tfidf_max = 0.0;
@@ -21,21 +20,22 @@ int main(int argc, char **argv) {
     double dph_max   = 0.0;
     double lm_max    = -std::numeric_limits<double>::max();
 
-    uint64_t cf = 0;
-    char     term[4096];
-    uint64_t pos   = 0;
-    uint32_t docid = 0;
-    uint32_t df = 0, i = 0;
-
-    std::string idx_file_name;
+    std::string inverted_index_file;
     std::string forward_index;
     std::string output_file;
 
     CLI::App app{"Unigram feature generation."};
-    app.add_option("-i,--inv-file", idx_file_name, "Inverted file input")->required();
+    app.add_option("-i,--inverted-index", inverted_index_file, "Inverted index filename")->required();
     app.add_option("-f,--forward-index", forward_index, "Forward index filename")->required();
     app.add_option("-o,--out-file", output_file, "Output filename")->required();
     CLI11_PARSE(app, argc, argv);
+
+
+    // load inv_idx
+    std::ifstream              ifs_inv(inverted_index_file);
+    cereal::BinaryInputArchive iarchive_inv(ifs_inv);
+    InvertedIndex                     inv_idx;
+    iarchive_inv(inv_idx);
 
     // load fwd_idx
     std::ifstream              ifs_fwd(forward_index);
@@ -55,45 +55,27 @@ int main(int argc, char **argv) {
     std::cout << "N. docs: " << ndocs << std::endl;
     std::cout << "Collection Length " << clen << std::endl;
 
-    if ((in_file = fopen(idx_file_name.c_str(), "rb")) == NULL) {
-        std::cout << "fopen(" << idx_file_name << ")" << std::endl;
-        exit(EXIT_FAILURE);
-    }
 
     /* Walk inverted file dump from Indri. */
-    while (fscanf(in_file, "%s", term) == 1) {
+    for(auto&& pl : inv_idx) {
         feature_t feature;
-        fscanf(in_file, "%" SCNu64, &cf);
-        fscanf(in_file, "%" SCNu64, &pos);
 
-        feature.cf   = cf;
-        feature.cdf  = pos;
-        feature.term = term;
+        feature.term = pl.term;
+        feature.cf = pl.totalCount;
+        feature.cdf = pl.list.size();
 
         /* Min count is set to 4 or IQR computation goes boom. */
-        if (pos >= 4) {
-            std::vector<posting_t> postings;
-            for (i = 0; i < pos; i++) {
-                fscanf(in_file, "%" SCNu32 ":", &docid);
-                fscanf(in_file, "%" SCNu32, &df);
-                postings.emplace_back(docid, df);
-            }
-            feature.geo_mean = compute_geo_mean(postings);
-            compute_tfidf_stats(feature, doclen, postings, ndocs, &tfidf_max);
-            compute_bm25_stats(feature, doclen, postings, ndocs, avg_dlen, &bm25_max);
-            compute_lm_stats(feature, doclen, postings, clen, cf, &lm_max);
-            compute_prob_stats(feature, doclen, postings, &pr_max);
-            compute_be_stats(feature, doclen, postings, ndocs, avg_dlen, cf, &be_max);
-            compute_dph_stats(feature, doclen, postings, ndocs, avg_dlen, cf, &dph_max);
-            compute_dfr_stats(feature, doclen, postings, ndocs, avg_dlen, cf, &dfr_max);
+        if (pl.list.size() >= 4) {
+            feature.geo_mean = compute_geo_mean(pl.list);
+            compute_tfidf_stats(feature, doclen, pl.list, ndocs, &tfidf_max);
+            compute_bm25_stats(feature, doclen, pl.list, ndocs, avg_dlen, &bm25_max);
+            compute_lm_stats(feature, doclen, pl.list, clen, pl.totalCount, &lm_max);
+            compute_prob_stats(feature, doclen, pl.list, &pr_max);
+            compute_be_stats(feature, doclen, pl.list, ndocs, avg_dlen, pl.totalCount, &be_max);
+            compute_dph_stats(feature, doclen, pl.list, ndocs, avg_dlen, pl.totalCount, &dph_max);
+            compute_dfr_stats(feature, doclen, pl.list, ndocs, avg_dlen, pl.totalCount, &dfr_max);
             outfile << feature;
             freq++;
-        } else {
-            for (i = 0; i < pos; i++) {
-                /* Read but ignore really short lists */
-                fscanf(in_file, "%" SCNu32 ":", &docid);
-                fscanf(in_file, "%" SCNu32, &df);
-            }
         }
         done++;
     }
@@ -106,7 +88,5 @@ int main(int argc, char **argv) {
     std::cout << "BE Max Score = " << be_max << std::endl;
     std::cout << "DPH Max Score = " << dph_max << std::endl;
     std::cout << "DFR Max Score = " << dfr_max << std::endl;
-
-    fclose(in_file);
     return 0;
 }

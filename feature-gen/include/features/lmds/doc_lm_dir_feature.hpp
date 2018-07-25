@@ -2,9 +2,6 @@
 #include "lexicon.hpp"
 #include "lm.hpp"
 
-/**
- * Language model with Dirichlet smoothing, mu set to Indri's default.
- */
 template <size_t _mu>
 class doc_lm_dir_feature : public doc_feature {
 
