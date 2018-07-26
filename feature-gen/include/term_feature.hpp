@@ -177,7 +177,6 @@ std::ostream &operator<<(std::ostream &os, const feature_t &f) {
     return os;
 }
 
-
 std::vector<size_t> build_doclen(ForwardIndex &fwd, size_t &clen, size_t &ndocs, double &avg_dlen) {
     std::vector<size_t> dlen;
     for (auto &&d : fwd) {
@@ -198,10 +197,10 @@ double compute_geo_mean(const std::vector<Posting> &posting) {
     return pow(sum, (1.0 / posting.size()));
 }
 
-void compute_prob_stats(feature_t &                   f,
-                        const std::vector<size_t> &   doclen,
+void compute_prob_stats(feature_t &                 f,
+                        const std::vector<size_t> & doclen,
                         const std::vector<Posting> &posting,
-                        double *                      max) {
+                        double &                    max) {
     uint32_t            size = posting.size();
     uint32_t            mid  = size / 2;
     uint32_t            lq   = size / 4;
@@ -211,11 +210,10 @@ void compute_prob_stats(feature_t &                   f,
     std::vector<double> bmtmp;
 
     for (size_t i = 0; i < size; i++) {
-        double score = 0.0;
-        score        = calculate_prob(posting[i].freq, doclen[posting[i].docid]);
+        double score = calculate_prob(posting[i].freq, doclen[posting[i].docid]);
         bmtmp.push_back(score);
-        if (score > *max)
-            *max = score;
+        if (score > max)
+            max = score;
     }
 
     std::sort(bmtmp.begin(), bmtmp.end(), std::greater<double>());
@@ -238,13 +236,13 @@ void compute_prob_stats(feature_t &                   f,
     f.pr_hmean      = (double)size / hmsum;
 }
 
-void compute_be_stats(feature_t &                   f,
-                      const std::vector<size_t> &   doclen,
+void compute_be_stats(feature_t &                 f,
+                      const std::vector<size_t> & doclen,
                       const std::vector<Posting> &posting,
-                      uint64_t                      ndocs,
-                      double                        avg_dlen,
-                      uint64_t                      c_f,
-                      double *                      max) {
+                      uint64_t                    ndocs,
+                      double                      avg_dlen,
+                      uint64_t                    c_f,
+                      double &                    max) {
     uint32_t            size = posting.size();
     uint32_t            mid  = size / 2;
     uint32_t            lq   = size / 4;
@@ -254,11 +252,11 @@ void compute_be_stats(feature_t &                   f,
     std::vector<double> bmtmp;
 
     for (size_t i = 0; i < size; i++) {
-        double score = 0.0;
-        score = calculate_be(posting[i].freq, c_f, ndocs, avg_dlen, doclen[posting[i].docid]);
+        double score =
+            calculate_be(posting[i].freq, c_f, ndocs, avg_dlen, doclen[posting[i].docid]);
         bmtmp.push_back(score);
-        if (score > *max)
-            *max = score;
+        if (score > max)
+            max = score;
     }
 
     std::sort(bmtmp.begin(), bmtmp.end(), std::greater<double>());
@@ -281,13 +279,13 @@ void compute_be_stats(feature_t &                   f,
     f.be_hmean      = (double)size / hmsum;
 }
 
-void compute_dph_stats(feature_t &                   f,
-                       const std::vector<size_t> &   doclen,
+void compute_dph_stats(feature_t &                 f,
+                       const std::vector<size_t> & doclen,
                        const std::vector<Posting> &posting,
-                       uint64_t                      ndocs,
-                       double                        avg_dlen,
-                       uint64_t                      c_f,
-                       double *                      max) {
+                       uint64_t                    ndocs,
+                       double                      avg_dlen,
+                       uint64_t                    c_f,
+                       double &                    max) {
     uint32_t            size = posting.size();
     uint32_t            mid  = size / 2;
     uint32_t            lq   = size / 4;
@@ -297,11 +295,11 @@ void compute_dph_stats(feature_t &                   f,
     std::vector<double> bmtmp;
 
     for (size_t i = 0; i < size; i++) {
-        double score = 0.0;
-        score = calculate_dph(posting[i].freq, c_f, ndocs, avg_dlen, doclen[posting[i].docid]);
+        double score =
+            calculate_dph(posting[i].freq, c_f, ndocs, avg_dlen, doclen[posting[i].docid]);
         bmtmp.push_back(score);
-        if (score > *max)
-            *max = score;
+        if (score > max)
+            max = score;
     }
 
     std::sort(bmtmp.begin(), bmtmp.end(), std::greater<double>());
@@ -324,13 +322,13 @@ void compute_dph_stats(feature_t &                   f,
     f.dph_hmean      = (double)size / hmsum;
 }
 
-void compute_dfr_stats(feature_t &                   f,
-                       const std::vector<size_t> &   doclen,
+void compute_dfr_stats(feature_t &                 f,
+                       const std::vector<size_t> & doclen,
                        const std::vector<Posting> &posting,
-                       uint64_t                      ndocs,
-                       double                        avg_dlen,
-                       uint64_t                      c_f,
-                       double *                      max) {
+                       uint64_t                    ndocs,
+                       double                      avg_dlen,
+                       uint64_t                    c_f,
+                       double &                    max) {
     uint32_t            size = posting.size();
     uint32_t            mid  = size / 2;
     uint32_t            lq   = size / 4;
@@ -340,12 +338,11 @@ void compute_dfr_stats(feature_t &                   f,
     std::vector<double> bmtmp;
 
     for (size_t i = 0; i < size; i++) {
-        double score = 0.0;
-        score =
+        double score =
             calculate_dfr(posting[i].freq, c_f, size, ndocs, avg_dlen, doclen[posting[i].docid]);
         bmtmp.push_back(score);
-        if (score > *max)
-            *max = score;
+        if (score > max)
+            max = score;
     }
 
     std::sort(bmtmp.begin(), bmtmp.end(), std::greater<double>());
@@ -368,11 +365,11 @@ void compute_dfr_stats(feature_t &                   f,
     f.dfr_hmean      = (double)size / hmsum;
 }
 
-void compute_tfidf_stats(feature_t &                   f,
-                         const std::vector<size_t> &   doclen,
+void compute_tfidf_stats(feature_t &                 f,
+                         const std::vector<size_t> & doclen,
                          const std::vector<Posting> &posting,
-                         uint64_t                      ndocs,
-                         double *                      max) {
+                         uint64_t                    ndocs,
+                         double &                    max) {
     size_t              size = posting.size();
     uint32_t            mid  = size / 2;
     uint32_t            lq   = size / 4;
@@ -382,11 +379,10 @@ void compute_tfidf_stats(feature_t &                   f,
     std::vector<double> bmtmp;
 
     for (size_t i = 0; i < size; i++) {
-        double score = 0.0;
-        score        = calculate_tfidf(posting[i].freq, size, doclen[posting[i].docid], ndocs);
+        double score = calculate_tfidf(posting[i].freq, size, doclen[posting[i].docid], ndocs);
         bmtmp.push_back(score);
-        if (score > *max)
-            *max = score;
+        if (score > max)
+            max = score;
     }
 
     std::sort(bmtmp.begin(), bmtmp.end(), std::greater<double>());
@@ -409,12 +405,12 @@ void compute_tfidf_stats(feature_t &                   f,
     f.tfidf_hmean      = (double)size / hmsum;
 }
 
-void compute_bm25_stats(feature_t &                   f,
-                        const std::vector<size_t> &   doclen,
+void compute_bm25_stats(feature_t &                 f,
+                        const std::vector<size_t> & doclen,
                         const std::vector<Posting> &posting,
-                        uint64_t                      ndocs,
-                        double                        avg_dlen,
-                        double *                      max) {
+                        uint64_t                    ndocs,
+                        double                      avg_dlen,
+                        double &                    max) {
     uint32_t            size = posting.size();
     uint32_t            mid  = size / 2;
     uint32_t            lq   = size / 4;
@@ -430,11 +426,11 @@ void compute_bm25_stats(feature_t &                   f,
     ranker.avg_doc_len = avg_dlen;
 
     for (size_t i = 0; i < size; i++) {
-        double score = 0.0;
-        score = ranker.calculate_docscore(1, posting[i].freq, size, doclen[posting[i].docid]);
+        double score =
+            ranker.calculate_docscore(1, posting[i].freq, size, doclen[posting[i].docid]);
         bmtmp.push_back(score);
-        if (score > *max)
-            *max = score;
+        if (score > max)
+            max = score;
     }
 
     std::sort(bmtmp.begin(), bmtmp.end(), std::greater<double>());
@@ -457,12 +453,12 @@ void compute_bm25_stats(feature_t &                   f,
     f.bm25_hmean      = (double)size / hmsum;
 }
 
-void compute_lm_stats(feature_t &                   f,
-                      const std::vector<size_t> &   doclen,
+void compute_lm_stats(feature_t &                 f,
+                      const std::vector<size_t> & doclen,
                       const std::vector<Posting> &posting,
-                      uint64_t                      clen,
-                      uint64_t                      cf,
-                      double *                      max) {
+                      uint64_t                    clen,
+                      uint64_t                    cf,
+                      double &                    max) {
     uint32_t            size = posting.size();
     uint32_t            mid  = size / 2;
     uint32_t            lq   = size / 4;
@@ -473,11 +469,10 @@ void compute_lm_stats(feature_t &                   f,
     std::vector<double> bmtmp;
 
     for (size_t i = 0; i < size; i++) {
-        double score = 0.0;
-        score        = calculate_lm(posting[i].freq, cf, doclen[posting[i].docid], clen, mu);
+        double score = calculate_lm(posting[i].freq, cf, doclen[posting[i].docid], clen, mu);
         bmtmp.push_back(score);
-        if (score > *max)
-            *max = score;
+        if (score > max)
+            max = score;
     }
 
     std::sort(bmtmp.begin(), bmtmp.end(), std::greater<double>());

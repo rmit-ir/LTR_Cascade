@@ -51,24 +51,15 @@ add_executable(create_inverted_index feature-gen/src/create_inverted_index.cpp)
 add_dependencies(create_inverted_index indri_proj)
 target_link_libraries(create_inverted_index indri pthread z)
 
-# dump_indri
-add_executable(dump_indri feature-gen/src/dump_indri.cpp)
-add_dependencies(dump_indri indri_proj)
-target_link_libraries(dump_indri indri pthread z)
-
-# dump_bigram
-add_executable(dump_bigram feature-gen/src/dump_bigram.cpp)
-add_dependencies(dump_bigram indri_proj)
-target_link_libraries(dump_bigram indri pthread z)
-target_include_directories(dump_bigram PUBLIC ${CMAKE_HOME_DIRECTORY}/feature-gen/src)
+# create_bigram_inverted_index
+add_executable(create_bigram_inverted_index feature-gen/src/create_bigram_inverted_index.cpp)
+add_dependencies(create_bigram_inverted_index indri_proj)
+target_link_libraries(create_bigram_inverted_index indri pthread z)
+target_include_directories(create_bigram_inverted_index PUBLIC ${CMAKE_HOME_DIRECTORY}/feature-gen/src)
 
 # fgen_term
 add_executable(fgen_term feature-gen/src/fgen_term.cpp)
 target_link_libraries(fgen_term m)
-
-# fgen_bigram
-add_executable(fgen_bigram feature-gen/src/fgen_bigram.cpp)
-target_link_libraries(fgen_bigram m)
 
 # pre-retrieval csv
 add_executable(preret_csv feature-gen/src/preret_csv.cpp
@@ -83,5 +74,5 @@ add_executable(fgtrain feature-gen/src/fgtrain.cpp
     feature-gen/src/fgen_term_qry.c feature-gen/src/query_features.c
     feature-gen/src/fgen_bigram_qry.c
     feature-gen/src/strbuf.c)
-add_dependencies(fgtrain dump_bigram indri_proj)
+add_dependencies(fgtrain create_bigram_inverted_index indri_proj)
 target_link_libraries(fgtrain indri pthread z)

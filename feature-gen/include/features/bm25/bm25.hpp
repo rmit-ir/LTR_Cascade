@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 
 struct rank_bm25 {
     const double epsilon_score = 1e-6;
