@@ -1,10 +1,13 @@
 #include "indri/DocListIterator.hpp"
 #include "indri/Index.hpp"
-#include "indri/QueryEnvironment.hpp"
 #include "indri/Repository.hpp"
 #include "w_scanner.hpp"
 #include "query_train_file.hpp"
+
 #include "cereal/archives/binary.hpp"
+#include "CLI/CLI.hpp"
+#include "inverted_index.hpp"
+
 
 #include <iostream>
 #include <tuple>
@@ -15,7 +18,7 @@ using namespace indri::api;
 
 indri::collection::Repository repository;
 
-std::vector<std::string> uniq_terms(const std::vector<std::string> &qry, QueryEnvironment &qry_env);
+std::vector<std::string> uniq_terms(const std::vector<std::string> &qry);
 
 struct bigram {
     int term_a;
@@ -29,70 +32,35 @@ struct bigram {
 };
 
 int main(int argc, char *argv[]) {
-    int   opt;
-    char *qfname; //!< query fname
-    char *lexicon_file;
-    char *idx_path; //!< indri index
-    int   w_size     = -1; //!< window size
-    std::string outfname;
 
-    while ((opt = getopt(argc, argv, "i:q:l:w:o:vg:")) != -1) {
-        switch (opt) {
-        case 'q':
-            if (!optarg) {
-                std::cerr << "Need query file. Quit." << std::endl;
-                exit(EXIT_FAILURE);
-            }
-            qfname = optarg;
-            break;
-        case 'i':
-            if (!optarg) {
-                std::cerr << "Need indri index. Quit." << std::endl;
-                exit(EXIT_FAILURE);
-            }
-            idx_path = optarg;
-            break;
-        case 'l':
-            if (!optarg) {
-                std::cerr << "Need lexicon. Quit." << std::endl;
-                exit(EXIT_FAILURE);
-            }
-            lexicon_file = optarg;
-            break;
-        case 'o':
-            outfname = optarg;
-            break;
-        case 'w':
-            if (!optarg) {
-                std::cerr << "Missing window size, set to default" << std::endl;
-            } else {
-                w_size = atoi(optarg);
-            }
-            break;
-        default:
-            std::cerr << "Usage: -i <idx_path> -q <qry_file> -w <size>"
-                      << " -u|o [unordered|ordered] -v [overlap]"
-                      << " -g [use indri style]" << std::endl;
-            exit(EXIT_FAILURE);
-        }
-    }
-    if (w_size == -1) {
-        std::cerr << "Window size is smaller than qlen, use 4*qlen by default." << std::endl;
-    }
+    constexpr int   w_size     = 8; //!< window size
+    std::string query_file;
+    std::string lexicon_file;
+    std::string repo_path;
+    std::string output_file;
+
+    CLI::App app{"Create bigram inverted index."};
+    app.add_option("-q,--query-file", query_file, "Query filename")->required();
+    app.add_option("-r,--repo-path", repo_path, "Repo path")->required();
+    app.add_option("-l,--lexicon", lexicon_file, "Lexicon file")->required();
+    app.add_option("-o,--out-file", output_file, "Output filename")->required();
+
+    CLI11_PARSE(app, argc, argv);
+
     //<! open read index
-    repository.openRead(idx_path);
-    indri::collection::Repository::index_state curr_state = repository.indexes();
-    indri::index::Index *                      curr_idx   = (*curr_state)[0];
-    uint64_t                                   tot_doc    = curr_idx->documentCount();
-    std::cerr << "Open Index, containing: " << tot_doc << " docs\n";
-    //!< prepare query environment, for stemming
-    QueryEnvironment indri_env;
-    indri_env.addIndex(idx_path);
+    indri::collection::Repository repo;
+    repo.openRead(repo_path);
+    indri::collection::Repository::index_state state = repo.indexes();
+    const auto &                               index = (*state)[0];
+
     //!< init scanner
     WScanner w_scanner = WScanner(w_size);
     //!< prepare the output file
 
-    std::ofstream fout(outfname.c_str());
+    std::ofstream               os(output_file, std::ios::binary);
+    cereal::BinaryOutputArchive archive(os);
+
+    InvertedIndex inv_idx;
 
 
     // load lexicon
@@ -101,11 +69,14 @@ int main(int argc, char *argv[]) {
     Lexicon                    lexicon;
     iarchive_lex(lexicon);
 
+    uint64_t                                   tot_doc    = lexicon.document_count();
+    std::cerr << "Open Index, containing: " << tot_doc << " docs\n";
+
     //!< load query set
     // load query file
-    std::ifstream ifs(qfname);
+    std::ifstream ifs(query_file);
     if (!ifs.is_open()) {
-        std::cerr << "Could not open file: " << qfname << std::endl;
+        std::cerr << "Could not open file: " << query_file << std::endl;
         exit(EXIT_FAILURE);
     }
     query_train_file qtfile(ifs, lexicon);
@@ -124,7 +95,7 @@ int main(int argc, char *argv[]) {
          qset_iter != qry_set.end();
          qset_iter++) {
         std::string              qry_str  = "";
-        std::vector<std::string> curr_qry = uniq_terms(*qset_iter, indri_env);
+        std::vector<std::string> curr_qry = uniq_terms(*qset_iter);
         if (curr_qry.size() < 2) {
             std::cerr << "Omit one term query." << std::endl;
         } else {
@@ -139,8 +110,8 @@ int main(int argc, char *argv[]) {
             }
 
             for (auto &curr_bigram : qry_bigrams) {
-                bigram term_bigram(curr_idx->term(curr_bigram.first),
-                                   curr_idx->term(curr_bigram.second));
+                bigram term_bigram(lexicon.term(curr_bigram.first),
+                                   lexicon.term(curr_bigram.second));
 
                 std::map<bigram, bool>::iterator found;
 
@@ -163,12 +134,9 @@ int main(int argc, char *argv[]) {
                         qry_str += curr_str + " ";
                         // get inverted list iterator and start with the term has smallest
                         // df
-                        uint64_t curr_df = curr_idx->documentCount(curr_str);
-                        doc_iters[i]     = curr_idx->docListIterator(curr_str);
+                        uint64_t curr_df = lexicon[lexicon.term(curr_str)].document_count();
+                        doc_iters[i]     = index->docListIterator(curr_str);
                         if (!doc_iters[i]) {
-                            std::cerr << "no doc iterator for term " << curr_str << " in bigram '"
-                                      << curr_bigram.first << " " << curr_bigram.second << "'"
-                                      << std::endl;
                             break;
                         }
                         doc_iters[i]->startIteration();
@@ -186,22 +154,16 @@ int main(int argc, char *argv[]) {
                     //!< start counting and then dumping out the results
                     std::vector<std::pair<lemur::api::DOCID_T, uint64_t>> window_postings =
                         w_scanner.window_count(doc_iters, min_term);
-                    // append to output file.
-                    fout << qry_str << w_scanner.collection_cnt() << " " << window_postings.size()
-                         << " ";
-                    for (auto post_iter = window_postings.begin();
-                         post_iter != window_postings.end();
-                         ++post_iter) {
-                        fout << post_iter->first << ":" << post_iter->second;
-                        if (std::next(post_iter) != window_postings.end()) {
-                            fout << " ";
-                        }
+
+                    PostingList pl(qry_str, w_scanner.collection_cnt());
+                    for (auto post_iter = window_postings.begin(); post_iter != window_postings.end(); ++post_iter) {
+                        pl.list.emplace_back(post_iter->first, post_iter->second);
                     }
-                    fout << std::endl;
+                    inv_idx.push_back(pl);
                     qry_str = "";
 
                     bigram_seen.emplace(std::pair<bigram, bool>(
-                        {curr_idx->term(curr_bigram.first), curr_idx->term(curr_bigram.second)},
+                        {lexicon.term(curr_bigram.first), lexicon.term(curr_bigram.second)},
                         true));
                     delete doc_iters[0];
                     delete doc_iters[1];
@@ -210,23 +172,15 @@ int main(int argc, char *argv[]) {
         }
         w_scanner.set_wsize(w_size);
     }
-    fout.close();
+    archive(inv_idx);
     return 0;
 }
 
-/**
- * remove duplicate terms. based on stemming and the
- * term id. Duplicate terms are not allowed for now.
- * @param qry
- * @param qry_env. QueryEnvironment, stemmer
- * @return
- */
-std::vector<std::string> uniq_terms(const std::vector<std::string> &qry,
-                                    QueryEnvironment &              qry_env) {
+std::vector<std::string> uniq_terms(const std::vector<std::string> &qry) {
     std::vector<std::string>        qry_tokens; //!< original order must be kept
     std::unordered_set<std::string> uniq_terms; //!< deduplicate
     for (size_t i = 0; i < qry.size(); ++i) {
-        std::string curr_token = qry_env.stemTerm(qry[i]);
+        std::string curr_token = qry[i];
         if (uniq_terms.empty() || uniq_terms.find(curr_token) == uniq_terms.end()) {
             qry_tokens.push_back(curr_token);
             uniq_terms.insert(curr_token);

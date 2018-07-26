@@ -1,11 +1,9 @@
 #include <algorithm>
-#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <string>
 
 #include "query_train_file.hpp"
-#include "trec_run_file.hpp"
 
 #include "fgen_bigram_qry.h"
 #include "fgen_term_qry.h"
@@ -13,7 +11,6 @@
 
 #include "CLI/CLI.hpp"
 #include "cereal/archives/binary.hpp"
-#include "query_environment_adapter.hpp"
 
 char *stdstr_to_cstr(const std::string &s) {
     char *cstr = new char[s.size() + 1];
