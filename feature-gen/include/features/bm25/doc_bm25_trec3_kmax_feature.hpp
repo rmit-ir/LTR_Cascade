@@ -8,11 +8,11 @@ class doc_bm25_trec3_kmax_feature : public doc_bm25_feature {
 public:
   doc_bm25_trec3_kmax_feature(Lexicon &lex) : doc_bm25_feature(lex) {}
 
-  void compute(query_train &qry, doc_entry &doc, FreqsEntry &freqs, FieldIdMap &field_id_map) {
+  void compute(query_train &qry, doc_entry &doc, Document &doc_idx, FieldIdMap &field_id_map) {
     ranker.set_k1(200);
     ranker.set_b(75);
 
-    bm25_compute(qry, doc, freqs, field_id_map);
+    bm25_compute(qry, doc, doc_idx, field_id_map);
 
     doc.bm25_trec3_kmax = _score_doc;
     doc.bm25_trec3_kmax_body = _score_body;

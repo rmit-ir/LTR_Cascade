@@ -72,7 +72,6 @@ gov2_termfeat.csv: gov2_indri/manifest gov2_unigram.txt gov2_bigram.txt gov2.lex
 	$(BIN)/preret_csv gov2-all-kstem.qry gov2_unigram.txt gov2_bigram.txt gov2.lex\
 	    | sed -E 's/\-?nan/0.00000/g' > $@
 
-# Combine into SVM light format
 termfeat.tmp: gov2_docfeat.csv gov2_termfeat.csv
 	./termfeat_expand.awk gov2_docfeat.csv gov2_termfeat.csv | sed -E 's/[^,]+,//' > $@
 

@@ -7,18 +7,18 @@ class doc_prob_feature : public doc_feature {
    public:
     doc_prob_feature(Lexicon &lex) : doc_feature(lex) {}
 
-    void compute(query_train &qry, doc_entry &doc, FreqsEntry &freqs, FieldIdMap &field_id_map) {
+    void compute(query_train &qry, doc_entry &doc, Document &doc_idx, FieldIdMap &field_id_map) {
         for (auto &q : qry.q_ft) {
             // skip non-existent terms
             if (q.first == 0) {
                 continue;
             }
 
-            if (freqs.d_ft.find(q.first) == freqs.d_ft.end()) {
+            if (doc_idx.freq(q.first) == 0) {
                 continue;
             }
 
-            _score_doc += calculate_prob(freqs.d_ft.at(q.first), freqs.doc_length);
+            _score_doc += calculate_prob(doc_idx.freq(q.first), doc_idx.length());
 
             // Score document fields
             for (const std::string &field_str : _fields) {
@@ -28,15 +28,15 @@ class doc_prob_feature : public doc_feature {
                     continue;
                 }
 
-                if (0 == freqs.field_len[field_id]) {
+                if (0 == doc_idx.field_len(field_id)) {
                     continue;
                 }
-                if (freqs.f_ft.find(std::make_pair(field_id, q.first)) == freqs.f_ft.end()) {
+                if (doc_idx.freq(field_id, q.first) == 0) {
                     continue;
                 }
 
                 double field_score = calculate_prob(
-                    freqs.f_ft.at(std::make_pair(field_id, q.first)), freqs.field_len[field_id]);
+                    doc_idx.freq(field_id, q.first), doc_idx.field_len(field_id));
                 _accumulate_score(field_str, field_score);
             }
         }

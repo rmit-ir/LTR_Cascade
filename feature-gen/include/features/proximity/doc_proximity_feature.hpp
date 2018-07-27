@@ -12,6 +12,7 @@
 
 #include "query_train_file.hpp"
 #include "tp_dist.hpp"
+#include "inverted_index.hpp"
 
 struct term_data {
     // The term id
@@ -43,13 +44,13 @@ class doc_proximity_feature {
     std::map<uint64_t, term_data> term_data_map;
 
    public:
-    doc_proximity_feature(Lexicon & lex) : lexicon(lex) {
+    doc_proximity_feature(Lexicon &lex) : lexicon(lex) {
         ranker.num_docs    = lex.document_count();
         auto num_terms     = lex.term_count();
         ranker.avg_doc_len = (double)num_terms / ranker.num_docs;
     }
 
-    void compute(doc_entry &doc, query_train &query, FreqsEntry &freqs) {
+    void compute(doc_entry &doc, query_train &query, Document &doc_idx) {
         score = 0.0;
 
         // condensed direct file
@@ -63,18 +64,18 @@ class doc_proximity_feature {
         for (auto &tid : query.tids) {
             // a missing term has key `0`
             if (tid > 0) {
-                if (freqs.positions[tid].size() !=0) {
+                if (doc_idx.freq(tid) !=0) {
                     ++s;
                     term_data curr_term(tid,
                                         lexicon[tid].document_count(),
-                                        freqs.positions[tid].size(),
-                                        ranker.calculate_wq(freqs.positions[tid].size()),
+                                        doc_idx.freq(tid),
+                                        ranker.calculate_wq(doc_idx.freq(tid)),
                                         query.pos[i]);
                     term_data_map.insert(std::pair<uint64_t, term_data>(tid, curr_term));
 
-                    _acc_positions_insert(acc_positions, freqs.positions[tid], acc_terms, curr_term);
+                    _acc_positions_insert(acc_positions, doc_idx.positions(tid), acc_terms, curr_term);
 
-                    for (auto pos : freqs.positions[tid]) {
+                    for (auto pos : doc_idx.positions(tid)) {
                         cdf.push_back(std::make_pair(tid, pos));
                     }
                 }
@@ -233,7 +234,7 @@ class doc_proximity_feature {
      * Vector insert ordered by f_dt. Xiaolu, et al.
      */
     void _acc_positions_insert(std::vector<indri::utility::greedy_vector<int>> &pos_vec,
-                               std::vector<uint64_t> &                          pos_el,
+                               const std::vector<uint32_t> &                          pos_el,
                                std::vector<term_data> &                         term_vec,
                                term_data &                                      term_el) {
 

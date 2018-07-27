@@ -157,7 +157,7 @@ int main(int argc, char *argv[]) {
 
                     PostingList pl(qry_str, w_scanner.collection_cnt());
                     for (auto post_iter = window_postings.begin(); post_iter != window_postings.end(); ++post_iter) {
-                        pl.list.emplace_back(post_iter->first, post_iter->second);
+                        pl.list[post_iter->first] = post_iter->second;
                     }
                     inv_idx.push_back(pl);
                     qry_str = "";
