@@ -2,6 +2,7 @@
 #include "indri/QueryEnvironment.hpp"
 #include "indri/Repository.hpp"
 
+#include "CLI/CLI.hpp"
 #include "cereal/archives/binary.hpp"
 #include "forward_index.hpp"
 
@@ -25,28 +26,28 @@ size_t url_slash_count(const std::string &url) {
     return count;
 }
 
-static const std::vector<std::string> _fields = {
-    "body", "title", "heading", "mainbody", "inlink", "a"};
+static const std::vector<std::string> _fields = {"body", "title", "heading", "inlink", "a"};
+
 
 int main(int argc, char const *argv[]) {
-    if (argc != 3) {
-        std::cerr << "USAGE: " << argv[0] << " <indri repository> <forward index name>"
-                  << std::endl;
-        return EXIT_FAILURE;
-    }
+    std::string repo_path;
+    std::string forward_index_file;
 
-    const std::string           repository_name = argv[1];
-    const std::string           forward_index   = argv[2];
-    std::ofstream               os(forward_index, std::ios::binary);
+    CLI::App app{"Inverted index generator."};
+    app.add_option("repo_path", repo_path, "Indri repo path")->required();
+    app.add_option("forward_index_file", forward_index_file, "Forward index file")->required();
+    CLI11_PARSE(app, argc, argv);
+
+    std::ofstream               os(forward_index_file, std::ios::binary);
     cereal::BinaryOutputArchive archive(os);
 
     indri::collection::Repository repo;
-    repo.openRead(repository_name);
+    repo.openRead(repo_path);
     indri::collection::Repository::index_state state = repo.indexes();
     const auto &                               index = (*state)[0];
 
     indri::api::QueryEnvironment indri_env;
-    indri_env.addIndex(repository_name);
+    indri_env.addIndex(repo_path);
 
     ForwardIndex fwd_idx;
     fwd_idx.push_back({});
@@ -59,22 +60,23 @@ int main(int argc, char const *argv[]) {
         indri::index::TermList *list       = iter->currentEntry();
         auto *                  priorEntry = priorIt->currentEntry();
         auto &                  doc_terms  = list->terms();
-        FreqsEntry              freqs;
+        Document                document;
         auto url = indri_env.documentMetadata(std::vector<lemur::api::DOCID_T>{docid}, "url");
-        freqs.url_stats.url_slash_count = url_slash_count(url.at(0));
-        freqs.url_stats.url_length      = url.at(0).size();
+
+        document.set_pagerank(priorEntry->score);
+        document.set_url_stats({url_slash_count(url.at(0)), url.at(0).size()});
+
+        std::vector<uint32_t> terms;
 
         for (auto &tid : doc_terms) {
-            freqs.term_list.push_back(tid);
+                terms.push_back(tid);
+        }
+        document.set_terms(terms);
 
-            auto it = freqs.d_ft.find(tid);
-            if (it == freqs.d_ft.end()) {
-                freqs.d_ft[tid] = 1;
-            }
-            ++it->second;
-
-            if (tid > 0 and freqs.d_ft[tid] == 1) {
-                auto *docListIter = index->docListIterator(tid);
+        for (auto &e : document.terms()) {
+            if(e > 0){
+                std::vector<uint32_t> positions;
+                auto *                docListIter = index->docListIterator(e);
                 docListIter->startIteration();
                 docListIter->nextEntry(docid);
                 if (!docListIter) {
@@ -82,20 +84,18 @@ int main(int argc, char const *argv[]) {
                 }
                 auto doc_data = docListIter->currentEntry();
                 if (doc_data && doc_data->document == docid) {
-                    std::for_each(doc_data->positions.begin(), doc_data->positions.end(), [&](const uint64_t &p){ freqs.positions[tid].push_back(p); });
+                    std::for_each(doc_data->positions.begin(),
+                                  doc_data->positions.end(),
+                                  [&](const uint64_t &p) { positions.push_back(p); });
                 }
                 delete docListIter;
+                document.set_positions(e, positions);
             }
         }
 
-        freqs.doc_length = doc_terms.size();
-
-        freqs.pagerank = priorEntry->score;
-
         auto fields = list->fields();
         for (auto &f : fields) {
-            std::string field_name = index->field(f.id);
-            ++freqs.fields_stats.tags_count[field_name];
+            document.set_tag_count(f.id, document.tag_count(f.id) + 1);
         }
 
         for (const std::string &field_str : _fields) {
@@ -104,38 +104,31 @@ int main(int argc, char const *argv[]) {
                 // field is not indexed
                 continue;
             }
-            freqs.field_max_len[field_id] = 0;
-            freqs.field_min_len[field_id] = std::numeric_limits<int>::max();
             for (auto &f : fields) {
                 if (f.id != static_cast<size_t>(field_id)) {
                     continue;
                 }
+                auto d_len = f.end - f.begin;
+                document.set_field_len(f.id, document.field_len(f.id) + d_len);
+                auto field_len_sqr = d_len * d_len;
+                document.set_field_len_sum_sqrs(f.id,
+                                                document.field_len_sum_sqrs(f.id) + field_len_sqr);
 
-                freqs.field_len[field_id] += f.end - f.begin;
-
-                if (freqs.field_max_len[field_id] < freqs.field_len[field_id]) {
-                    freqs.field_max_len[field_id] = freqs.field_len[field_id];
+                if (document.field_max_len(f.id) < document.field_len(f.id)) {
+                    document.set_field_max_len(f.id, document.field_len(f.id));
                 }
 
-                if (freqs.field_min_len[field_id] > freqs.field_len[field_id]) {
-                    freqs.field_min_len[field_id] = freqs.field_len[field_id];
+                if (document.field_min_len(f.id) < document.field_len(f.id)) {
+                    document.set_field_min_len(f.id, document.field_len(f.id));
                 }
-
-                freqs.field_len_sum_sqrs[field_str] +=
-                    freqs.field_len[field_id] * freqs.field_len[field_id];
 
                 for (size_t i = f.begin; i < f.end; ++i) {
-                    auto field_term = std::make_pair(field_id, doc_terms[i]);
-                    auto it         = freqs.f_ft.find(field_term);
-                    if (it == freqs.f_ft.end()) {
-                        freqs.f_ft[field_term] = 1;
-                    } else {
-                        ++it->second;
-                    }
+                    auto freq = document.freq(f.id, doc_terms[i]) + 1;
+                    document.set_freq(f.id, doc_terms[i], freq);
                 }
             }
         }
-        fwd_idx.push_back(freqs);
+        fwd_idx.push_back(document);
         iter->nextEntry();
         priorIt->nextEntry();
         ++docid;

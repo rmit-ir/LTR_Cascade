@@ -37,7 +37,7 @@ class document_features {
 
 public:
 
-  void compute(query_train &qry, doc_entry &doc, FreqsEntry &freqs, FieldIdMap &field_id_map) {
+  void compute(query_train &qry, doc_entry &doc, Document &doc_idx, FieldIdMap &field_id_map) {
 
     /*
      * List of fields for the current document. The field `id` indicates which
@@ -62,7 +62,7 @@ public:
 
       size_t qry_term_count = 0;
       for (auto &q : qry.q_ft) {
-        qry_term_count += freqs.f_ft[{field_id, q.first}];
+        qry_term_count += doc_idx.freq(field_id, q.first);
       }
 
       set_tag_qry_count(field_str, qry_term_count);
@@ -73,17 +73,17 @@ public:
     doc.tag_mainbody_qry_count = tag_mainbody_qry_count;
     doc.tag_inlink_qry_count = tag_inlink_qry_count;
 
-    doc.tag_title_count = freqs.fields_stats.tags_count["title"];
+    doc.tag_title_count = doc_idx.tag_count(field_id_map["title"]);
     if (doc.tag_title_count > 1) {
         // penalise docs with more than 1 `title` tag
         doc.tag_title_count = -doc.tag_title_count;
     }
 
-    doc.tag_heading_count = freqs.fields_stats.tags_count["heading"];
-    doc.tag_inlink_count = freqs.fields_stats.tags_count["inlink"];
-    doc.tag_applet_count = freqs.fields_stats.tags_count["applet"];
-    doc.tag_object_count = freqs.fields_stats.tags_count["object"];
-    doc.tag_embed_count = freqs.fields_stats.tags_count["embed"];
+    doc.tag_heading_count = doc_idx.tag_count(field_id_map["heading"]);
+    doc.tag_inlink_count = doc_idx.tag_count(field_id_map["inlink"]);
+    doc.tag_applet_count = doc_idx.tag_count(field_id_map["applet"]);
+    doc.tag_object_count = doc_idx.tag_count(field_id_map["object"]);
+    doc.tag_embed_count = doc_idx.tag_count(field_id_map["embed"]);
   }
 
   void set_tag_qry_count(std::string field, size_t n) {

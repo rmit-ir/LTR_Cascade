@@ -37,7 +37,7 @@ int main(int argc, char const *argv[]) {
         PostingList pl(termData->term, termData->corpus.totalCount);
         while (!entry->iterator->finished()) {
             indri::index::DocListIterator::DocumentData *doc = entry->iterator->currentEntry();
-            pl.list.emplace_back(doc->document, doc->positions.size());
+            pl.list[doc->document] = doc->positions.size();
             entry->iterator->nextEntry();
         }
         inv_idx.push_back(pl);

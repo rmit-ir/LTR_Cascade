@@ -17,7 +17,7 @@ struct bctp_scorer {
     double b           = 0.4;
     double avg_doc_len = 0.0;
 
-    double score(std::vector<bctp_term> &terms, doc_entry &doc, FreqsEntry &freqs) {
+    double score(std::vector<bctp_term> &terms, doc_entry &doc, Document &doc_idx) {
         double score = 0.0;
 
         if (terms.size() < 3 || doc.length < terms.size()) {
@@ -28,7 +28,7 @@ struct bctp_scorer {
         for (auto &t : terms) {
             term_map.insert(std::make_pair(t.id, &t));
         }
-        score_terms(term_map, freqs.term_list);
+        score_terms(term_map, doc_idx.terms());
 
         for (auto const &term : terms) {
             double weight = std::min(1.0, term.weight);
@@ -42,7 +42,7 @@ struct bctp_scorer {
         return score;
     }
 
-    void score_terms(std::map<int, bctp_term *> &terms, const std::vector<uint64_t> &doc_positions) {
+    void score_terms(std::map<int, bctp_term *> &terms, const std::vector<uint32_t> &doc_positions) {
         bctp_term *curr_term = nullptr;
         bctp_term *prev_term = nullptr;
         size_t     prev_pos  = 0;
@@ -84,12 +84,12 @@ class doc_tpscore_feature : public doc_bm25_feature {
         ranker_bctp.avg_doc_len = _avg_doc_len;
     }
 
-    void compute(query_train &qry, doc_entry &doc, FreqsEntry &freqs, FieldIdMap &field_id_map) {
+    void compute(query_train &qry, doc_entry &doc, Document &doc_idx, FieldIdMap &field_id_map) {
         auto bm25_atire = doc.bm25_atire;
         if(bm25_atire == 0) {
             ranker.set_k1(90);
             ranker.set_b(40);
-            bm25_compute(qry, doc, freqs, field_id_map);
+            bm25_compute(qry, doc, doc_idx, field_id_map);
             bm25_atire = _score_doc;
         }
 
@@ -101,7 +101,7 @@ class doc_tpscore_feature : public doc_bm25_feature {
             bctp_query.push_back(t);
         }
 
-        double tp_score = ranker_bctp.score(bctp_query, doc, freqs);
+        double tp_score = ranker_bctp.score(bctp_query, doc, doc_idx);
         // The TP-Score is BM25 + BCTP
         doc.tpscore = bm25_atire + tp_score;
     }

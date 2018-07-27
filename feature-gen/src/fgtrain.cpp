@@ -50,14 +50,13 @@ int main(int argc, char **argv) {
     repo.openRead(repo_path);
     auto index = (*repo.indexes())[0];
 
-
     using clock = std::chrono::high_resolution_clock;
     auto start  = clock::now();
 
     // load fwd_idx
     std::ifstream              ifs_fwd(forward_index_file);
     cereal::BinaryInputArchive iarchive_fwd(ifs_fwd);
-    ForwardIndex                     fwd_idx;
+    ForwardIndex               fwd_idx;
     iarchive_fwd(fwd_idx);
 
     auto stop      = clock::now();
@@ -131,32 +130,32 @@ int main(int argc, char **argv) {
             auto const docno = docnos[i];
             auto const label = docno_labels[i];
 
-            auto &freqs = fwd_idx[docid];
+            auto &doc_idx = fwd_idx[docid];
 
-            doc_entry doc_entry(docid, freqs.pagerank);
+            doc_entry doc_entry(docid, doc_idx.pagerank());
 
             // set url_slash_count as feature for training
-            doc_entry.url_slash_count = freqs.url_stats.url_slash_count;
-            doc_entry.url_length      = freqs.url_stats.url_length;
+            doc_entry.url_slash_count = doc_idx.url_slash_count();
+            doc_entry.url_length      = doc_idx.url_length();
 
             // set original run score as a feature for training
             doc_entry.stage0_score = stage0_scores[i];
 
-            f_bm25_atire.compute(qry, doc_entry, freqs, field_id_map);
-            f_bm25_trec3.compute(qry, doc_entry, freqs, field_id_map);
-            f_bm25_trec3_kmax.compute(qry, doc_entry, freqs, field_id_map);
-            f_lmds_2500.compute(qry, doc_entry, freqs, field_id_map);
-            f_lmds_1500.compute(qry, doc_entry, freqs, field_id_map);
-            f_lmds_1000.compute(qry, doc_entry, freqs, field_id_map);
-            tfidf_feature.compute(qry, doc_entry, freqs, field_id_map);
-            prob_feature.compute(qry, doc_entry, freqs, field_id_map);
-            be_feature.compute(qry, doc_entry, freqs, field_id_map);
-            dph_feature.compute(qry, doc_entry, freqs, field_id_map);
-            dfr_feature.compute(qry, doc_entry, freqs, field_id_map);
-            f_stream.compute(qry, doc_entry, freqs, field_id_map);
-            features.compute(qry, doc_entry, freqs, field_id_map);
-            prox_feature.compute(doc_entry, qry, freqs);
-            f_tpscore.compute(qry, doc_entry, freqs, field_id_map);
+            f_bm25_atire.compute(qry, doc_entry, doc_idx, field_id_map);
+            f_bm25_trec3.compute(qry, doc_entry, doc_idx, field_id_map);
+            f_bm25_trec3_kmax.compute(qry, doc_entry, doc_idx, field_id_map);
+            f_lmds_2500.compute(qry, doc_entry, doc_idx, field_id_map);
+            f_lmds_1500.compute(qry, doc_entry, doc_idx, field_id_map);
+            f_lmds_1000.compute(qry, doc_entry, doc_idx, field_id_map);
+            tfidf_feature.compute(qry, doc_entry, doc_idx, field_id_map);
+            prob_feature.compute(qry, doc_entry, doc_idx, field_id_map);
+            be_feature.compute(qry, doc_entry, doc_idx, field_id_map);
+            dph_feature.compute(qry, doc_entry, doc_idx, field_id_map);
+            dfr_feature.compute(qry, doc_entry, doc_idx, field_id_map);
+            f_stream.compute(qry, doc_entry, doc_idx, field_id_map);
+            features.compute(qry, doc_entry, doc_idx, field_id_map);
+            prox_feature.compute(doc_entry, qry, doc_idx);
+            f_tpscore.compute(qry, doc_entry, doc_idx, field_id_map);
 
             outfile << label << "," << qry.id << "," << docno << doc_entry << std::endl;
         }
