@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
     iarchive_fwd(fwd_idx);
 
 
-    auto outfile = std::ofstream(output_file, std::ofstream::app);
+    std::ofstream outfile(output_file, std::ofstream::app);
     outfile << std::fixed << std::setprecision(6);
 
     size_t    clen = 0;
