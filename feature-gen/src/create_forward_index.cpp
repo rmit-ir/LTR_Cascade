@@ -68,15 +68,13 @@ int main(int argc, char const *argv[]) {
 
         std::vector<uint32_t> terms;
 
+        std::set<uint32_t> tid_unique;
         for (auto &tid : doc_terms) {
-                terms.push_back(tid);
-        }
-        document.set_terms(terms);
-
-        for (auto &e : document.terms()) {
-            if(e > 0){
+            terms.push_back(tid);
+            auto it = tid_unique.insert(tid);
+            if(tid > 0 and it.second){
                 std::vector<uint32_t> positions;
-                auto *                docListIter = index->docListIterator(e);
+                auto *                docListIter = index->docListIterator(tid);
                 docListIter->startIteration();
                 docListIter->nextEntry(docid);
                 if (!docListIter) {
@@ -89,9 +87,11 @@ int main(int argc, char const *argv[]) {
                                   [&](const uint64_t &p) { positions.push_back(p); });
                 }
                 delete docListIter;
-                document.set_positions(e, positions);
+                document.set_positions(tid, positions);
             }
+
         }
+        document.set_terms(terms);
 
         auto fields = list->fields();
         for (auto &f : fields) {
