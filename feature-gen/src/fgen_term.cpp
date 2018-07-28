@@ -1,6 +1,7 @@
 #include <iostream>
 #include <limits>
 #include <string>
+#include <chrono>
 
 #include "CLI/CLI.hpp"
 #include "cereal/archives/binary.hpp"
@@ -30,19 +31,36 @@ int main(int argc, char **argv) {
     app.add_option("-o,--out-file", output_file, "Output filename")->required();
     CLI11_PARSE(app, argc, argv);
 
-
-    // load inv_idx
-    std::ifstream              ifs_inv(inverted_index_file);
-    cereal::BinaryInputArchive iarchive_inv(ifs_inv);
+    using clock = std::chrono::high_resolution_clock;
     InvertedIndex                     inv_idx;
-    iarchive_inv(inv_idx);
-
-    // load fwd_idx
-    std::ifstream              ifs_fwd(forward_index);
-    cereal::BinaryInputArchive iarchive_fwd(ifs_fwd);
     ForwardIndex                     fwd_idx;
-    iarchive_fwd(fwd_idx);
 
+    {
+
+        auto start  = clock::now();
+
+        // load inv_idx
+        std::ifstream              ifs_inv(inverted_index_file);
+        cereal::BinaryInputArchive iarchive_inv(ifs_inv);
+        iarchive_inv(inv_idx);
+
+        auto stop      = clock::now();
+        auto load_time = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+        std::cerr << "Loaded " << inverted_index_file << " in " << load_time.count() << " ms"
+                  << std::endl;
+    }
+    {
+        auto start  = clock::now();
+
+        // load fwd_idx
+        std::ifstream              ifs_fwd(forward_index);
+        cereal::BinaryInputArchive iarchive_fwd(ifs_fwd);
+        iarchive_fwd(fwd_idx);
+        auto stop      = clock::now();
+        auto load_time = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+        std::cerr << "Loaded " << forward_index << " in " << load_time.count() << " ms"
+                  << std::endl;
+    }
 
     std::ofstream outfile(output_file, std::ofstream::app);
     outfile << std::fixed << std::setprecision(6);
