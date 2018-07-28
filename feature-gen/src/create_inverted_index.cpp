@@ -30,18 +30,16 @@ int main(int argc, char const *argv[]) {
 
     while (!iter->finished()) {
         indri::index::DocListFileIterator::DocListData *entry = iter->currentEntry();
-        auto *iter2 = entry->iterator;
-        iter2->startIteration();
+        entry->iterator->startIteration();
 
         indri::index::TermData *termData = entry->termData;
 
         PostingList pl(termData->term, termData->corpus.totalCount);
-        while (!iter2->finished()) {
-            indri::index::DocListIterator::DocumentData *doc = iter2->currentEntry();
+        while (!entry->iterator->finished()) {
+            indri::index::DocListIterator::DocumentData *doc = entry->iterator->currentEntry();
             pl.list[doc->document] = doc->positions.size();
-            iter2->nextEntry();
+            entry->iterator->nextEntry();
         }
-        delete iter2;
         inv_idx.push_back(pl);
         iter->nextEntry();
     }
