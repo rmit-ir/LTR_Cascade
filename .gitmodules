@@ -7,3 +7,6 @@
 [submodule "external/CLI11"]
 	path = external/CLI11
 	url = git@github.com:CLIUtils/CLI11.git
+[submodule "external/FastPFor"]
+	path = external/FastPFor
+	url = https://github.com/lemire/FastPFor.git

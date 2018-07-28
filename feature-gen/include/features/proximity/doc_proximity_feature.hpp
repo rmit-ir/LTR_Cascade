@@ -12,7 +12,6 @@
 
 #include "query_train_file.hpp"
 #include "tp_dist.hpp"
-#include "inverted_index.hpp"
 
 struct term_data {
     // The term id
