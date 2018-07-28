@@ -17,7 +17,7 @@ externalproject_add(indri_proj
     INSTALL_COMMAND make install
     )
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11 -Wall -Wextra -pedantic")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11 -Wall -Wextra -pedantic -march=native")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -std=c++11 -Wall -Wextra -pedantic -DHAVE_EXT_ATOMICITY=1 -DP_NEEDS_GNU_CXX_NAMESPACE=1 -march=native")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
@@ -34,7 +34,22 @@ set(CEREAL_INCLUDE_DIR ${CMAKE_HOME_DIRECTORY}/external/cereal/include)
 
 set(CLI11_INCLUDE_DIR ${CMAKE_HOME_DIRECTORY}/external/CLI11/include)
 
-include_directories(${INDRI_INCLUDE_DIR} ${WANDBL_INCLUDE_DIR} ${CEREAL_INCLUDE_DIR} ${CLI11_INCLUDE_DIR}  feature-gen/include)
+
+set(FASTPFOR_INCLUDE_DIR ${CMAKE_HOME_DIRECTORY}/external/FastPFor/headers)
+add_library(FastPFor STATIC ${CMAKE_HOME_DIRECTORY}/external/FastPFor/src/bitpacking.cpp
+                                ${CMAKE_HOME_DIRECTORY}/external/FastPFor/src/bitpacking.cpp
+                                ${CMAKE_HOME_DIRECTORY}/external/FastPFor/src/bitpackingaligned.cpp
+                                ${CMAKE_HOME_DIRECTORY}/external/FastPFor/src/bitpackingunaligned.cpp
+                                ${CMAKE_HOME_DIRECTORY}/external/FastPFor/src/horizontalbitpacking.cpp
+                                ${CMAKE_HOME_DIRECTORY}/external/FastPFor/src/simdunalignedbitpacking.cpp
+                                ${CMAKE_HOME_DIRECTORY}/external/FastPFor/src/simdbitpacking.cpp
+                                ${CMAKE_HOME_DIRECTORY}/external/FastPFor/src/varintdecode.c
+                                ${CMAKE_HOME_DIRECTORY}/external/FastPFor/src/streamvbyte.c
+                                ${FASTPFOR_INCLUDE_DIR}
+                                )
+
+
+include_directories(${INDRI_INCLUDE_DIR} ${WANDBL_INCLUDE_DIR} ${CEREAL_INCLUDE_DIR} ${CLI11_INCLUDE_DIR} ${FASTPFOR_INCLUDE_DIR} feature-gen/include)
 
 # forward_index
 add_executable(create_forward_index feature-gen/src/create_forward_index.cpp)
@@ -49,17 +64,17 @@ target_link_libraries(create_lexicon indri pthread z)
 # inverted_index
 add_executable(create_inverted_index feature-gen/src/create_inverted_index.cpp)
 add_dependencies(create_inverted_index indri_proj)
-target_link_libraries(create_inverted_index indri pthread z)
+target_link_libraries(create_inverted_index indri FastPFor pthread z)
 
 # create_bigram_inverted_index
 add_executable(create_bigram_inverted_index feature-gen/src/create_bigram_inverted_index.cpp)
 add_dependencies(create_bigram_inverted_index indri_proj)
-target_link_libraries(create_bigram_inverted_index indri pthread z)
+target_link_libraries(create_bigram_inverted_index indri FastPFor pthread z)
 target_include_directories(create_bigram_inverted_index PUBLIC ${CMAKE_HOME_DIRECTORY}/feature-gen/src)
 
 # fgen_term
 add_executable(fgen_term feature-gen/src/fgen_term.cpp)
-target_link_libraries(fgen_term m)
+target_link_libraries(fgen_term FastPFor m)
 
 # pre-retrieval csv
 add_executable(preret_csv feature-gen/src/preret_csv.cpp

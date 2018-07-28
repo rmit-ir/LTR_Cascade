@@ -11,7 +11,6 @@
 #include "indri/Index.hpp"
 
 #include "query_train_file.hpp"
-#include "inverted_index.hpp"
 #include "lexicon.hpp"
 
 namespace {

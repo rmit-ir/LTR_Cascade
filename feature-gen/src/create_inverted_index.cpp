@@ -27,7 +27,7 @@ int main(int argc, char const *argv[]) {
 
     indri::index::DocListFileIterator *iter = index->docListFileIterator();
     iter->startIteration();
-
+auto counter =0;
     while (!iter->finished()) {
         indri::index::DocListFileIterator::DocListData *entry = iter->currentEntry();
         entry->iterator->startIteration();
@@ -35,16 +35,21 @@ int main(int argc, char const *argv[]) {
         indri::index::TermData *termData = entry->termData;
 
         PostingList pl(termData->term, termData->corpus.totalCount);
+        std::vector<uint32_t> docs;
+        std::vector<uint32_t> freqs;
+
         while (!entry->iterator->finished()) {
             indri::index::DocListIterator::DocumentData *doc = entry->iterator->currentEntry();
-            pl.list[doc->document] = doc->positions.size();
+            docs.push_back(doc->document);
+            freqs.push_back(doc->positions.size());
             entry->iterator->nextEntry();
         }
+        pl.add_list(docs, freqs);
         inv_idx.push_back(pl);
         iter->nextEntry();
     }
     delete iter;
-
+std::cout << counter << std::endl;
     archive(inv_idx);
     return 0;
 }

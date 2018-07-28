@@ -156,9 +156,13 @@ int main(int argc, char *argv[]) {
                         w_scanner.window_count(doc_iters, min_term);
 
                     PostingList pl(qry_str, w_scanner.collection_cnt());
+                    std::vector<uint32_t> docs;
+                    std::vector<uint32_t> freqs;
                     for (auto post_iter = window_postings.begin(); post_iter != window_postings.end(); ++post_iter) {
-                        pl.list[post_iter->first] = post_iter->second;
+                        docs.push_back(post_iter->first);
+                        freqs.push_back(post_iter->second);
                     }
+                    pl.add_list(docs, freqs);
                     inv_idx.push_back(pl);
                     qry_str = "";
 
