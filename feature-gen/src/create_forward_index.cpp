@@ -131,6 +131,9 @@ int main(int argc, char const *argv[]) {
         fwd_idx.push_back(document);
         iter->nextEntry();
         priorIt->nextEntry();
+        if(docid % 10000 == 0) {
+            std::cout << "Processed " << docid << " documents." << std::endl;
+        }
         ++docid;
     }
     delete iter;
