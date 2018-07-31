@@ -47,6 +47,9 @@ int main(int argc, char const *argv[]) {
         pl.add_list(docs, freqs);
         inv_idx.push_back(pl);
         iter->nextEntry();
+        if(inv_idx.size() % 10000 == 0) {
+            std::cout << "Processed " << inv_idx.size() << " terms." << std::endl;
+        }
     }
     delete iter;
     archive(inv_idx);
