@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
     std::ofstream outfile(output_file, std::ofstream::app);
     outfile << std::fixed << std::setprecision(6);
 
-    size_t clen     = std::accumulate(doc_lens.begin(), doc_lens.end(), 0);
+    size_t clen     = std::accumulate(doc_lens.begin(), doc_lens.end(), size_t(0));
     size_t ndocs    = doc_lens.size();
     double avg_dlen = (double)clen / ndocs;
     std::cout << "Avg Document Length: " << avg_dlen << std::endl;
@@ -92,6 +92,9 @@ int main(int argc, char **argv) {
             compute_dfr_stats(feature, doc_lens, list, ndocs, avg_dlen, pl.totalCount, dfr_max);
             outfile << feature;
             freq++;
+        }
+        if(done % 10000 == 0) {
+            std::cout << "Processed " << done << " terms." << std::endl;
         }
         done++;
     }
