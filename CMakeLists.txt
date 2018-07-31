@@ -54,7 +54,13 @@ include_directories(${INDRI_INCLUDE_DIR} ${WANDBL_INCLUDE_DIR} ${CEREAL_INCLUDE_
 # forward_index
 add_executable(create_forward_index feature-gen/src/create_forward_index.cpp)
 add_dependencies(create_forward_index indri_proj)
-target_link_libraries(create_forward_index indri pthread z)
+target_link_libraries(create_forward_index FastPFor indri pthread z)
+
+# forward_index
+add_executable(create_doc_lens feature-gen/src/create_doc_lens.cpp)
+add_dependencies(create_doc_lens indri_proj)
+target_link_libraries(create_doc_lens indri pthread z)
+
 
 # lexicon
 add_executable(create_lexicon feature-gen/src/create_lexicon.cpp)
@@ -90,4 +96,4 @@ add_executable(fgtrain feature-gen/src/fgtrain.cpp
     feature-gen/src/fgen_bigram_qry.c
     feature-gen/src/strbuf.c)
 add_dependencies(fgtrain create_bigram_inverted_index indri_proj)
-target_link_libraries(fgtrain indri pthread z)
+target_link_libraries(fgtrain indri pthread FastPFor z)

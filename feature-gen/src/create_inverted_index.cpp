@@ -24,10 +24,10 @@ int main(int argc, char const *argv[]) {
     const auto &                               index = (*state)[0];
 
     InvertedIndex inv_idx;
+    inv_idx.reserve(index->termCount() + 1);
 
     indri::index::DocListFileIterator *iter = index->docListFileIterator();
     iter->startIteration();
-auto counter =0;
     while (!iter->finished()) {
         indri::index::DocListFileIterator::DocListData *entry = iter->currentEntry();
         entry->iterator->startIteration();
@@ -49,7 +49,6 @@ auto counter =0;
         iter->nextEntry();
     }
     delete iter;
-std::cout << counter << std::endl;
     archive(inv_idx);
     return 0;
 }
