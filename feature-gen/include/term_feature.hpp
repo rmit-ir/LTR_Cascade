@@ -177,18 +177,6 @@ std::ostream &operator<<(std::ostream &os, const feature_t &f) {
     return os;
 }
 
-std::vector<size_t> build_doclen(ForwardIndex &fwd, size_t &clen, size_t &ndocs, double &avg_dlen) {
-    std::vector<size_t> dlen;
-    for (auto &&d : fwd) {
-        clen += d.length();
-        dlen.push_back(d.length());
-        ++ndocs;
-    }
-    --ndocs;
-    avg_dlen = (double)clen / ndocs;
-    return dlen;
-}
-
 double compute_geo_mean(const std::vector<uint32_t> &freqs) {
     double sum = 0.0;
     for (auto &&f : freqs) {

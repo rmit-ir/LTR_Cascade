@@ -1,13 +1,13 @@
+#include <chrono>
 #include <iostream>
 #include <limits>
 #include <string>
-#include <chrono>
 
 #include "CLI/CLI.hpp"
 #include "cereal/archives/binary.hpp"
 
+#include "doc_lens.hpp"
 #include "inverted_index.hpp"
-#include "forward_index.hpp"
 #include "term_feature.hpp"
 
 int main(int argc, char **argv) {
@@ -22,22 +22,23 @@ int main(int argc, char **argv) {
     double lm_max    = -std::numeric_limits<double>::max();
 
     std::string inverted_index_file;
-    std::string forward_index;
+    std::string doc_lens_file;
     std::string output_file;
 
     CLI::App app{"Unigram feature generation."};
-    app.add_option("-i,--inverted-index", inverted_index_file, "Inverted index filename")->required();
-    app.add_option("-f,--forward-index", forward_index, "Forward index filename")->required();
+    app.add_option("-i,--inverted-index", inverted_index_file, "Inverted index filename")
+        ->required();
+    app.add_option("-d,--doc-lens", doc_lens_file, "Document lens filename")->required();
     app.add_option("-o,--out-file", output_file, "Output filename")->required();
     CLI11_PARSE(app, argc, argv);
 
     using clock = std::chrono::high_resolution_clock;
-    InvertedIndex                     inv_idx;
-    ForwardIndex                     fwd_idx;
+    InvertedIndex inv_idx;
+    DocLens       doc_lens;
 
     {
 
-        auto start  = clock::now();
+        auto start = clock::now();
 
         // load inv_idx
         std::ifstream              ifs_inv(inverted_index_file);
@@ -50,46 +51,45 @@ int main(int argc, char **argv) {
                   << std::endl;
     }
     {
-        auto start  = clock::now();
+        auto start = clock::now();
 
-        // load fwd_idx
-        std::ifstream              ifs_fwd(forward_index);
-        cereal::BinaryInputArchive iarchive_fwd(ifs_fwd);
-        iarchive_fwd(fwd_idx);
+        // load doc_lens
+        std::ifstream              ifs_len(doc_lens_file);
+        cereal::BinaryInputArchive iarchive_len(ifs_len);
+        iarchive_len(doc_lens);
         auto stop      = clock::now();
         auto load_time = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-        std::cerr << "Loaded " << forward_index << " in " << load_time.count() << " ms"
+        std::cerr << "Loaded " << doc_lens_file << " in " << load_time.count() << " ms"
                   << std::endl;
     }
 
     std::ofstream outfile(output_file, std::ofstream::app);
     outfile << std::fixed << std::setprecision(6);
 
-    size_t    clen = 0;
-    size_t ndocs    = 0;
-    double avg_dlen = 0.0;
-    auto doclen = build_doclen(fwd_idx, clen, ndocs, avg_dlen);
+    size_t clen     = std::accumulate(doc_lens.begin(), doc_lens.end(), 0);
+    size_t ndocs    = doc_lens.size();
+    double avg_dlen = (double)clen / ndocs;
     std::cout << "Avg Document Length: " << avg_dlen << std::endl;
     std::cout << "N. docs: " << ndocs << std::endl;
     std::cout << "Collection Length " << clen << std::endl;
 
-    for(auto&& pl : inv_idx) {
+    for (auto &&pl : inv_idx) {
         feature_t feature;
-        feature.term =  pl.term;
-        feature.cf = pl.totalCount;
-        feature.cdf = pl.size();
-        auto list = pl.list();
+        feature.term = pl.term;
+        feature.cf   = pl.totalCount;
+        feature.cdf  = pl.size();
+        auto list    = pl.list();
 
         /* Min count is set to 4 or IQR computation goes boom. */
         if (pl.size() >= 4) {
             feature.geo_mean = compute_geo_mean(list.second);
-            compute_tfidf_stats(feature, doclen, list, ndocs, tfidf_max);
-            compute_bm25_stats(feature, doclen, list, ndocs, avg_dlen, bm25_max);
-            compute_lm_stats(feature, doclen, list, clen, pl.totalCount, lm_max);
-            compute_prob_stats(feature, doclen, list, pr_max);
-            compute_be_stats(feature, doclen, list, ndocs, avg_dlen, pl.totalCount, be_max);
-            compute_dph_stats(feature, doclen, list, ndocs, avg_dlen, pl.totalCount, dph_max);
-            compute_dfr_stats(feature, doclen, list, ndocs, avg_dlen, pl.totalCount, dfr_max);
+            compute_tfidf_stats(feature, doc_lens, list, ndocs, tfidf_max);
+            compute_bm25_stats(feature, doc_lens, list, ndocs, avg_dlen, bm25_max);
+            compute_lm_stats(feature, doc_lens, list, clen, pl.totalCount, lm_max);
+            compute_prob_stats(feature, doc_lens, list, pr_max);
+            compute_be_stats(feature, doc_lens, list, ndocs, avg_dlen, pl.totalCount, be_max);
+            compute_dph_stats(feature, doc_lens, list, ndocs, avg_dlen, pl.totalCount, dph_max);
+            compute_dfr_stats(feature, doc_lens, list, ndocs, avg_dlen, pl.totalCount, dfr_max);
             outfile << feature;
             freq++;
         }
