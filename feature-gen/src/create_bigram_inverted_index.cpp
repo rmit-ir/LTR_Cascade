@@ -21,10 +21,10 @@ indri::collection::Repository repository;
 std::vector<std::string> uniq_terms(const std::vector<std::string> &qry);
 
 struct bigram {
-    int term_a;
-    int term_b;
+    size_t term_a;
+    size_t term_b;
 
-    bigram(int a, int b) : term_a(a), term_b(b) {}
+    bigram(size_t a, size_t b) : term_a(a), term_b(b) {}
 
     bool operator<(const bigram &rhs) const {
         return std::tie(term_a, term_b) < std::tie(rhs.term_a, rhs.term_b);
@@ -161,6 +161,9 @@ int main(int argc, char *argv[]) {
                     for (auto post_iter = window_postings.begin(); post_iter != window_postings.end(); ++post_iter) {
                         docs.push_back(post_iter->first);
                         freqs.push_back(post_iter->second);
+                    }
+                    if(docs.size() == 0) {
+                        continue;
                     }
                     pl.add_list(docs, freqs);
                     inv_idx.push_back(pl);
