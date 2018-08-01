@@ -214,7 +214,7 @@ void compute_prob_stats(feature_t &                               f,
                                         return a + (1.0/b);
                                     });
     double avg = sum / size;
-    double variance = (sum_sqrs / size) - avg * avg;
+    double variance = std::abs((sum_sqrs / size) - avg * avg);
     double std_dev = std::sqrt(variance);
 
     f.pr_avg        = avg;
@@ -258,7 +258,7 @@ void compute_be_stats(feature_t &                               f,
                                         return a + (1.0/b);
                                     });
     double avg = sum / size;
-    double variance = (sum_sqrs / size) - avg * avg;
+    double variance = std::abs((sum_sqrs / size) - avg * avg);
     double std_dev = std::sqrt(variance);
 
     f.be_avg        = avg;
@@ -302,7 +302,7 @@ void compute_dph_stats(feature_t &                               f,
                                         return a + (1.0/b);
                                     });
     double avg = sum / size;
-    double variance = (sum_sqrs / size) - avg * avg;
+    double variance = std::abs((sum_sqrs / size) - avg * avg);
     double std_dev = std::sqrt(variance);
 
     f.dph_avg        = avg;
@@ -347,7 +347,7 @@ void compute_dfr_stats(feature_t &                               f,
                                         return a + (1.0/b);
                                     });
     double avg = sum / size;
-    double variance = (sum_sqrs / size) - avg * avg;
+    double variance = std::abs((sum_sqrs / size) - avg * avg);
     double std_dev = std::sqrt(variance);
 
     f.dfr_avg        = avg;
@@ -389,7 +389,7 @@ void compute_tfidf_stats(feature_t &                               f,
                                         return a + (1.0/b);
                                     });
     double avg = sum / size;
-    double variance = (sum_sqrs / size) - avg * avg;
+    double variance = std::abs((sum_sqrs / size) - avg * avg);
     double std_dev = std::sqrt(variance);
 
     f.tfidf_avg        = avg;
@@ -438,7 +438,7 @@ void compute_bm25_stats(feature_t &                               f,
                                         return a + (1.0/b);
                                     });
     double avg = sum / size;
-    double variance = (sum_sqrs / size) - avg * avg;
+    double variance = std::abs((sum_sqrs / size) - avg * avg);
     double std_dev = std::sqrt(variance);
 
     f.bm25_avg        = avg;
@@ -482,7 +482,7 @@ void compute_lm_stats(feature_t &                               f,
                                         return a + (1.0/b);
                                     });
     double avg = sum / size;
-    double variance = (sum_sqrs / size) - avg * avg;
+    double variance = std::abs((sum_sqrs / size) - avg * avg);
     double std_dev = std::sqrt(variance);
 
     f.lm_avg        = avg;
