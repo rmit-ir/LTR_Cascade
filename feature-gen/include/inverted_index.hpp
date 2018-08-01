@@ -2,7 +2,6 @@
 
 #include "cereal/types/vector.hpp"
 #include "cereal/types/string.hpp"
-#include "cereal/types/unordered_map.hpp"
 
 #include "codecfactory.h"
 #include "deltautil.h"
