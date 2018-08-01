@@ -93,10 +93,10 @@ int main(int argc, char **argv) {
             outfile << feature;
             freq++;
         }
+        done++;
         if(done % 10000 == 0) {
             std::cout << "Processed " << done << " terms." << std::endl;
         }
-        done++;
     }
     std::cout << "Inv Lists Processed = " << done << std::endl;
     std::cout << "Inv Lists > 4 = " << freq << std::endl;

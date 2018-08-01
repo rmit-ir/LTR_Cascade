@@ -50,6 +50,7 @@ int main(int argc, char const *argv[]) {
             std::cout << "Processed " << inv_idx.size() << " terms." << std::endl;
         }
     }
+    std::cout << "Processed " << inv_idx.size() << " terms." << std::endl;
     delete iter;
     archive(inv_idx);
     return 0;
