@@ -63,10 +63,10 @@ gov2_bigram.inv: gov2-all-kstem.qry gov2.lex
 	$(BIN)/create_bigram_inverted_index -r gov2_indri -q gov2-all-kstem.qry -l gov2.lex -o $@
 
 gov2_unigram.txt: gov2.fwd gov2.inv
-	$(BIN)/fgen_term -i gov2.inv -d gov2.lens  -o $@
+	$(BIN)/generate_term_features -i gov2.inv -d gov2.lens  -o $@
 
 gov2_bigram.txt: gov2_bigram.inv
-	$(BIN)/fgen_term -i $< -d gov2.lens -o $@
+	$(BIN)/generate_term_features -i $< -d gov2.lens -o $@
 
 gov2_docfeat.csv: gov2_indri/manifest stage0.run gov2.fwd gov2.lex
 	$(BIN)/fgtrain gov2-all-kstem.qry stage0.run gov2_indri gov2.fwd gov2.lex $@

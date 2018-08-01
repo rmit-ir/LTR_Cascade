@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
     std::string doc_lens_file;
     std::string output_file;
 
-    CLI::App app{"Unigram feature generation."};
+    CLI::App app{"Term features generation."};
     app.add_option("-i,--inverted-index", inverted_index_file, "Inverted index filename")
         ->required();
     app.add_option("-d,--doc-lens", doc_lens_file, "Document lens filename")->required();

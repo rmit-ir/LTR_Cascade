@@ -19,7 +19,7 @@ externalproject_add(indri_proj
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11 -Wall -Wextra -pedantic -march=native")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -std=c++11 -Wall -Wextra -pedantic -DHAVE_EXT_ATOMICITY=1 -DP_NEEDS_GNU_CXX_NAMESPACE=1 -march=native")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -pedantic -DHAVE_EXT_ATOMICITY=1 -DP_NEEDS_GNU_CXX_NAMESPACE=1 -march=native")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 
@@ -61,7 +61,6 @@ add_executable(create_doc_lens feature-gen/src/create_doc_lens.cpp)
 add_dependencies(create_doc_lens indri_proj)
 target_link_libraries(create_doc_lens indri pthread z)
 
-
 # lexicon
 add_executable(create_lexicon feature-gen/src/create_lexicon.cpp)
 add_dependencies(create_lexicon indri_proj)
@@ -78,9 +77,9 @@ add_dependencies(create_bigram_inverted_index indri_proj)
 target_link_libraries(create_bigram_inverted_index indri FastPFor pthread z)
 target_include_directories(create_bigram_inverted_index PUBLIC ${CMAKE_HOME_DIRECTORY}/feature-gen/src)
 
-# fgen_term
-add_executable(fgen_term feature-gen/src/fgen_term.cpp)
-target_link_libraries(fgen_term FastPFor m)
+# generate_term_features
+add_executable(generate_term_features feature-gen/src/generate_term_features.cpp)
+target_link_libraries(generate_term_features FastPFor m)
 
 # pre-retrieval csv
 add_executable(preret_csv feature-gen/src/preret_csv.cpp
