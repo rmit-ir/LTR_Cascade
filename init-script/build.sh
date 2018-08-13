@@ -5,7 +5,7 @@ if [ ! -d "init-script" ]; then
     exit 1
 fi
 
-git submodule update --init --recursive external/WANDbl
+git submodule update --init --recursive
 cd external/WANDbl && ./build.sh && cd -
 mkdir -p external/local/bin
 cp external/WANDbl/bin/* external/local/bin
