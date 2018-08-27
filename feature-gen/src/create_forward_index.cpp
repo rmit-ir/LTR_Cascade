@@ -66,32 +66,17 @@ int main(int argc, char const *argv[]) {
         document.set_pagerank(priorEntry->score);
         document.set_url_stats({url_slash_count(url.at(0)), url.at(0).size()});
 
-        std::vector<uint32_t> terms;
-
-        std::set<uint32_t> tid_unique;
-        for (auto &tid : doc_terms) {
-            terms.push_back(tid);
-            auto it = tid_unique.insert(tid);
-            if(tid > 0 and it.second){
-                std::vector<uint32_t> positions;
-                auto *                docListIter = index->docListIterator(tid);
-                docListIter->startIteration();
-                docListIter->nextEntry(docid);
-                if (!docListIter) {
-                    continue;
-                }
-                auto doc_data = docListIter->currentEntry();
-                if (doc_data && doc_data->document == docid) {
-                    std::for_each(doc_data->positions.begin(),
-                                  doc_data->positions.end(),
-                                  [&](const uint64_t &p) { positions.push_back(p); });
-                }
-                delete docListIter;
-                document.set_positions(tid, positions);
-            }
-
-        }
+        std::vector<uint32_t> terms(doc_terms.begin(), doc_terms.end());
         document.set_terms(terms);
+
+        std::unordered_map<uint32_t, std::vector<uint32_t>> positions;
+        for (size_t i = 0; i < terms.size(); i++) {
+            positions[terms[i]].push_back(i);
+        }
+
+        for (auto& p : positions) {
+            document.set_positions(p.first, p.second);
+        }
 
         auto fields = list->fields();
         for (auto &f : fields) {
@@ -131,7 +116,7 @@ int main(int argc, char const *argv[]) {
         fwd_idx.push_back(document);
         iter->nextEntry();
         priorIt->nextEntry();
-        if(docid % 10000 == 0) {
+        if (docid % 10000 == 0) {
             std::cout << "Processed " << docid << " documents." << std::endl;
         }
         ++docid;
