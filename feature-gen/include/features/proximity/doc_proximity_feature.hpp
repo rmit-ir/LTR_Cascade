@@ -61,22 +61,22 @@ class doc_proximity_feature {
         int i = 0;
         int s = 0;
         for (auto &tid : query.tids) {
-            // a missing term has key `0`
-            if (tid > 0) {
-                if (doc_idx.freq(tid) !=0) {
-                    ++s;
-                    term_data curr_term(tid,
-                                        lexicon[tid].document_count(),
-                                        doc_idx.freq(tid),
-                                        ranker.calculate_wq(doc_idx.freq(tid)),
-                                        query.pos[i]);
-                    term_data_map.insert(std::pair<uint64_t, term_data>(tid, curr_term));
+            if (lexicon.is_oov(tid)) {
+                continue;
+            }
+            if (doc_idx.freq(tid) !=0) {
+                ++s;
+                term_data curr_term(tid,
+                                    lexicon[tid].document_count(),
+                                    doc_idx.freq(tid),
+                                    ranker.calculate_wq(doc_idx.freq(tid)),
+                                    query.pos[i]);
+                term_data_map.insert(std::pair<uint64_t, term_data>(tid, curr_term));
 
-                    _acc_positions_insert(acc_positions, doc_idx.positions(tid), acc_terms, curr_term);
+                _acc_positions_insert(acc_positions, doc_idx.positions(tid), acc_terms, curr_term);
 
-                    for (auto pos : doc_idx.positions(tid)) {
-                        cdf.push_back(std::make_pair(tid, pos));
-                    }
+                for (auto pos : doc_idx.positions(tid)) {
+                    cdf.push_back(std::make_pair(tid, pos));
                 }
             }
             ++i;

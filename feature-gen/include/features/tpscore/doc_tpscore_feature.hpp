@@ -96,6 +96,9 @@ class doc_tpscore_feature : public doc_bm25_feature {
         std::vector<bctp_term> bctp_query;
         for (auto &q : qry.q_ft) {
             bctp_term t;
+            if (lexicon.is_oov(q.first)) {
+                continue;
+            }
             t.id        = q.first;
             t.doc_count = lexicon[q.first].document_count();
             bctp_query.push_back(t);

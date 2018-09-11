@@ -134,7 +134,12 @@ int main(int argc, char *argv[]) {
                         qry_str += curr_str + " ";
                         // get inverted list iterator and start with the term has smallest
                         // df
-                        uint64_t curr_df = lexicon[lexicon.term(curr_str)].document_count();
+                        size_t tid = lexicon.term(curr_str);
+                        if (lexicon.is_oov(tid)) {
+                          // skip terms that don't exist
+                          break;
+                        }
+                        uint64_t curr_df = lexicon[tid].document_count();
                         doc_iters[i]     = index->docListIterator(curr_str);
                         if (!doc_iters[i]) {
                             break;
