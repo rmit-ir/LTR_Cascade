@@ -120,3 +120,15 @@ add_executable(fgtrain feature-gen/src/fgtrain.cpp
 add_dependencies(fgtrain create_bigram_inverted_index indri_proj)
 set_target_properties(fgtrain PROPERTIES COMPILE_FLAGS ${INDRI_DEP_FLAGS})
 target_link_libraries(fgtrain indri lemur antlr pthread FastPFor z)
+
+# install
+install(TARGETS 
+    create_forward_index
+    create_doc_lens
+    create_lexicon
+    create_inverted_index
+    create_bigram_inverted_index
+    generate_term_features
+    preret_csv
+    fgtrain
+    DESTINATION bin)
