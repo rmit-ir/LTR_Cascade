@@ -9,7 +9,7 @@ class doc_dph_feature : public doc_feature {
     void compute(query_train &qry, doc_entry &doc, Document &doc_idx, FieldIdMap &field_id_map) {
         for (auto &q : qry.q_ft) {
             // skip non-existent terms
-            if (q.first == 0) {
+            if (lexicon.is_oov(q.first)) {
                 continue;
             }
 

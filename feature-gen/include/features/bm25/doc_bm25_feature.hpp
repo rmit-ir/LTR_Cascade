@@ -22,7 +22,7 @@ class doc_bm25_feature : public doc_feature {
         for (auto &q : qry.q_ft) {
 
             // skip non-existent terms
-            if (q.first == 0) {
+            if (lexicon.is_oov(q.first)) {
                 continue;
             }
 

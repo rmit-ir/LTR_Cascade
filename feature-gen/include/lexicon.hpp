@@ -5,6 +5,7 @@
 #include "cereal/types/vector.hpp"
 #include "cereal/types/map.hpp"
 
+#include <limits>
 #include <map>
 
 struct Counts {
@@ -71,8 +72,12 @@ class Lexicon {
         if(it != term_id.end()){
             return it->second;
         }
-        return -1;
+        return oov_term();
     }
+
+    inline size_t oov_term() { return std::numeric_limits<std::size_t>::max(); }
+
+    inline bool is_oov(size_t tid) { return tid == oov_term(); }
 
     void push_back(const std::string &t, const Counts &c, const FieldCounts &fc) {
         auto id = terms.size();
