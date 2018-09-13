@@ -167,12 +167,12 @@ int main(int argc, char *argv[]) {
                         docs.push_back(post_iter->first);
                         freqs.push_back(post_iter->second);
                     }
-                    if(docs.size() == 0) {
+                    qry_str = "";
+                    if (docs.size() == 0) {
                         continue;
                     }
                     pl.add_list(docs, freqs);
                     inv_idx.push_back(pl);
-                    qry_str = "";
 
                     bigram_seen.emplace(std::pair<bigram, bool>(
                         {lexicon.term(curr_bigram.first), lexicon.term(curr_bigram.second)},
