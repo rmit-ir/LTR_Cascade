@@ -43,11 +43,11 @@ add_dependencies(preret_csv indri_proj)
 set_target_properties(preret_csv PROPERTIES COMPILE_FLAGS ${INDRI_DEP_FLAGS})
 target_link_libraries(preret_csv indri lemur pthread z)
 
-# fgtrain
-add_executable(fgtrain fgtrain.cpp
+# generate_document_features
+add_executable(generate_document_features generate_document_features.cpp
     fgen_term_qry.c query_features.c
     fgen_bigram_qry.c
     strbuf.c)
-add_dependencies(fgtrain create_bigram_inverted_index indri_proj)
-set_target_properties(fgtrain PROPERTIES COMPILE_FLAGS ${INDRI_DEP_FLAGS})
-target_link_libraries(fgtrain indri lemur antlr pthread FastPFor z)
+add_dependencies(generate_document_features create_bigram_inverted_index indri_proj)
+set_target_properties(generate_document_features PROPERTIES COMPILE_FLAGS ${INDRI_DEP_FLAGS})
+target_link_libraries(generate_document_features indri lemur antlr pthread FastPFor z)

@@ -67,7 +67,7 @@ gov2_bigram.txt: gov2_bigram.inv gov2.lens
 	$(BIN)/generate_term_features -i $< -d gov2.lens -o $@
 
 gov2_docfeat.csv: gov2_indri/manifest stage0.run gov2.fwd gov2.lex
-	$(BIN)/fgtrain gov2-all-kstem.qry stage0.run gov2_indri gov2.fwd gov2.lex $@
+	$(BIN)/generate_document_features gov2-all-kstem.qry stage0.run gov2_indri gov2.fwd gov2.lex $@
 
 gov2_termfeat.csv: gov2_indri/manifest gov2_unigram.txt gov2_bigram.txt gov2.lex
 	$(BIN)/preret_csv gov2-all-kstem.qry gov2_unigram.txt gov2_bigram.txt gov2.lex\
