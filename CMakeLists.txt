@@ -4,6 +4,8 @@ include(ExternalProject)
 
 project(SIGIR17 CXX C)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE release)
 endif()
@@ -17,5 +19,9 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
 
 include(external/external.cmake)
 
-include_directories(${INDRI_INCLUDE_DIR} ${WANDBL_INCLUDE_DIR} ${CEREAL_INCLUDE_DIR} ${CLI11_INCLUDE_DIR} ${FASTPFOR_INCLUDE_DIR} feature-gen/include)
+include_directories(${INDRI_INCLUDE_DIR} ${CEREAL_INCLUDE_DIR} ${CLI11_INCLUDE_DIR} ${FASTPFOR_INCLUDE_DIR} include)
+
+add_subdirectory(src)
+
+
 
